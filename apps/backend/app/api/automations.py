@@ -19,10 +19,30 @@ def get_execution_repo(db: AsyncSession = Depends(get_db)) -> BaseRepository[Aut
 async def get_automations(skip: int = 0, limit: int = 50, repo: BaseRepository[Automation] = Depends(get_automation_repo)):
     return await repo.get_all(skip, limit)
 
+from app.models.automation import AutomationTrigger, AutomationAction
+
 @router.post("/", response_model=AutomationResponse, status_code=status.HTTP_201_CREATED)
-async def create_automation(auto_in: AutomationCreate, repo: BaseRepository[Automation] = Depends(get_automation_repo)):
+async def create_automation(auto_in: AutomationCreate, db: AsyncSession = Depends(get_db)):
     data = auto_in.model_dump()
-    return await repo.create(**data)
+    triggers_data = data.pop("triggers", [])
+    actions_data = data.pop("actions", [])
+    
+    auto = Automation(**data)
+    db.add(auto)
+    await db.commit()
+    await db.refresh(auto)
+    
+    for t in triggers_data:
+        trig = AutomationTrigger(automation_id=auto.id, **t)
+        db.add(trig)
+        
+    for a in actions_data:
+        act = AutomationAction(automation_id=auto.id, **a)
+        db.add(act)
+        
+    await db.commit()
+    await db.refresh(auto)
+    return auto
 
 @router.get("/{id}", response_model=AutomationResponse)
 async def get_automation(id: int, repo: BaseRepository[Automation] = Depends(get_automation_repo)):
