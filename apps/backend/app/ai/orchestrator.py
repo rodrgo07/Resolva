@@ -5,11 +5,23 @@ from app.ai.providers.mock_provider import MockAIProvider
 from app.ai.providers.openai_provider import OpenAIProvider
 from app.ai.providers.base import AIProvider
 from app.ai.tools.base import BaseTool
+from app.ai.tools.task_tools import ListTasksTool, CreateTaskTool
+from app.ai.tools.finance_tools import GetFinanceSummaryTool, CreateExpenseTool
+from app.ai.tools.study_tools import GetStudySummaryTool
 from app.ai.permissions import check_permission
 from app.models.ai import AIConversation, AIMessage
 from app.schemas.ai import ChatResponse
 from app.config import settings
 from app.core.logging import logger
+
+def get_default_tools() -> List[BaseTool]:
+    return [
+        ListTasksTool(),
+        CreateTaskTool(),
+        GetFinanceSummaryTool(),
+        CreateExpenseTool(),
+        GetStudySummaryTool()
+    ]
 
 class AIOrchestrator:
     def __init__(self, db: AsyncSession, tools: Optional[List[BaseTool]] = None, services: Optional[Dict[str, Any]] = None):
@@ -19,8 +31,11 @@ class AIOrchestrator:
         else:
             self.provider: AIProvider = MockAIProvider()
             
-        self.tools_map = {t.name: t for t in (tools or [])}
+        all_tools = tools if tools is not None else get_default_tools()
+        self.tools_map = {t.name: t for t in all_tools}
+        
         self.services = services or {}
+        self.services["db"] = self.db
 
     def _get_tools_schema(self) -> List[Dict[str, Any]]:
         schemas = []
