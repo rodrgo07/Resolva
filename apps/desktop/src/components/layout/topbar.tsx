@@ -1,4 +1,3 @@
-import * as React from "react"
 import { Search } from "lucide-react"
 import { useAppStore } from "@/stores/app-store"
 import { Button } from "@/components/ui/button"

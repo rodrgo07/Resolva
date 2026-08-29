@@ -1,18 +1,17 @@
-import * as React from "react"
+import { useState, useRef, ReactNode } from "react"
 import { createPortal } from "react-dom"
-import { cn } from "@/lib/utils"
 
 export interface TooltipProps {
-  children: React.ReactNode
+  children: ReactNode
   content: string
   position?: "top" | "bottom" | "left" | "right"
 }
 
 export function Tooltip({ children, content, position = "top" }: TooltipProps) {
-  const [isVisible, setIsVisible] = React.useState(false)
-  const [coords, setCoords] = React.useState({ x: 0, y: 0 })
-  const childRef = React.useRef<HTMLDivElement>(null)
-  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null)
+  const [isVisible, setIsVisible] = useState(false)
+  const [coords, setCoords] = useState({ x: 0, y: 0 })
+  const childRef = useRef<HTMLDivElement>(null)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const showTooltip = () => {
     timeoutRef.current = setTimeout(() => {

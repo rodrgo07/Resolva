@@ -1,12 +1,32 @@
-import * as React from "react"
 import { 
   LayoutDashboard, CheckSquare, BookOpen, Wallet, Mail, 
-  CalendarDays, Zap, Bot, Activity, Settings, Bell, ChevronLeft, ChevronRight
+  CalendarDays, Zap, Bot, Activity, Settings, Bell, ChevronLeft, ChevronRight,
+  LucideIcon
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAppStore } from "@/stores/app-store"
+import { useState } from "react"
 
-const navItems = [
+type Page =
+  | "dashboard"
+  | "tasks"
+  | "studies"
+  | "finances"
+  | "emails"
+  | "calendar"
+  | "automations"
+  | "ai"
+  | "activity"
+  | "settings"
+  | "notifications"
+
+interface NavItem {
+  id: Page
+  label: string
+  icon: LucideIcon
+}
+
+const navItems: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "tasks", label: "Tarefas", icon: CheckSquare },
   { id: "studies", label: "Estudos", icon: BookOpen },
@@ -19,17 +39,20 @@ const navItems = [
 ]
 
 export function Sidebar() {
-  const { currentPage, setCurrentPage } = useAppStore()
-  const [isCollapsed, setIsCollapsed] = React.useState(false)
+  const { currentPage, setCurrentPage, backendStatus } = useAppStore()
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const unreadCount = 3
-  const backendStatus = "connected"
 
   const getStatusColor = () => {
-    switch(backendStatus) {
-      case "connected": return "bg-green-500"
-      case "connecting": return "bg-yellow-500"
-      case "disconnected": return "bg-red-500"
-      default: return "bg-surface-500"
+    switch (backendStatus) {
+      case "connected":
+        return "bg-green-500"
+      case "connecting":
+        return "bg-yellow-500"
+      case "disconnected":
+        return "bg-red-500"
+      default:
+        return "bg-surface-500"
     }
   }
 

@@ -1,6 +1,6 @@
 from datetime import date
 from typing import Optional
-from sqlalchemy import String, Float, ForeignKey, Enum as SQLEnum
+from sqlalchemy import String, Float, ForeignKey, Enum as SQLEnum, Date
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 import enum
 
@@ -37,7 +37,7 @@ class Expense(BaseModel):
     amount: Mapped[float] = mapped_column(Float)
     description: Mapped[str] = mapped_column(String(255))
     category_id: Mapped[Optional[int]] = mapped_column(ForeignKey("categories.id"))
-    date: Mapped[date] = mapped_column()
+    date: Mapped[date] = mapped_column(Date)
     type: Mapped[TransactionType] = mapped_column(SQLEnum(TransactionType))
     recurrence: Mapped[Optional[str]] = mapped_column(String(50))
     notes: Mapped[Optional[str]] = mapped_column(String)

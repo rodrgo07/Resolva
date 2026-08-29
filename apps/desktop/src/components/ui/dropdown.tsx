@@ -1,5 +1,4 @@
-import * as React from "react"
-import { createPortal } from "react-dom"
+import { createContext, useContext, useState, useRef, useEffect, ReactNode, isValidElement, cloneElement, ReactElement, MouseEvent as ReactMouseEvent } from "react"
 import { cn } from "@/lib/utils"
 
 interface DropdownContextType {
@@ -8,17 +7,17 @@ interface DropdownContextType {
   toggle: () => void
 }
 
-const DropdownContext = React.createContext<DropdownContextType>({
+const DropdownContext = createContext<DropdownContextType>({
   isOpen: false,
   setIsOpen: () => {},
   toggle: () => {}
 })
 
-export function Dropdown({ children }: { children: React.ReactNode }) {
-  const [isOpen, setIsOpen] = React.useState(false)
-  const dropdownRef = React.useRef<HTMLDivElement>(null)
+export function Dropdown({ children }: { children: ReactNode }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false)
@@ -37,13 +36,14 @@ export function Dropdown({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function DropdownTrigger({ children, asChild }: { children: React.ReactNode, asChild?: boolean }) {
-  const { toggle } = React.useContext(DropdownContext)
+export function DropdownTrigger({ children, asChild }: { children: ReactNode, asChild?: boolean }) {
+  const { toggle } = useContext(DropdownContext)
   
-  if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children as React.ReactElement, {
-      onClick: (e: any) => {
-        if (children.props.onClick) children.props.onClick(e)
+  if (asChild && isValidElement(children)) {
+    const childElement = children as ReactElement<{ onClick?: (e: ReactMouseEvent) => void }>
+    return cloneElement(childElement, {
+      onClick: (e: ReactMouseEvent) => {
+        if (childElement.props?.onClick) childElement.props.onClick(e)
         toggle()
       }
     })
@@ -56,15 +56,15 @@ export function DropdownTrigger({ children, asChild }: { children: React.ReactNo
   )
 }
 
-export function DropdownContent({ children, className, align = "end" }: { children: React.ReactNode, className?: string, align?: "start"|"end" }) {
-  const { isOpen } = React.useContext(DropdownContext)
-  
+export function DropdownContent({ children, className, align = "end" }: { children: ReactNode, className?: string, align?: "start"|"end" }) {
+  const { isOpen } = useContext(DropdownContext)
+
   if (!isOpen) return null
 
   return (
     <div 
       className={cn(
-        "absolute z-50 mt-2 min-w-[8rem] rounded-md border border-surface-700 bg-surface-900/95 glass-card shadow-lg animate-fade-in p-1",
+        "absolute z-50 mt-2 min-w-[8rem] overflow-hidden rounded-md border border-surface-700 bg-surface-900/95 glass-card p-1 text-white shadow-md animate-slide-up",
         align === "end" ? "right-0" : "left-0",
         className
       )}
@@ -74,26 +74,37 @@ export function DropdownContent({ children, className, align = "end" }: { childr
   )
 }
 
-export function DropdownItem({ children, onClick, icon, className }: { children: React.ReactNode, onClick?: () => void, icon?: React.ReactNode, className?: string }) {
-  const { setIsOpen } = React.useContext(DropdownContext)
-  
+export function DropdownItem({ 
+  children, 
+  onClick, 
+  className,
+  disabled
+}: { 
+  children: ReactNode, 
+  onClick?: () => void, 
+  className?: string,
+  disabled?: boolean
+}) {
+  const { setIsOpen } = useContext(DropdownContext)
+
   return (
     <button
-      className={cn(
-        "flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-surface-200 outline-none hover:bg-surface-800 hover:text-white transition-colors focus:bg-surface-800",
-        className
-      )}
-      onClick={(e) => {
-        if(onClick) onClick()
+      disabled={disabled}
+      onClick={() => {
+        if (disabled) return
+        if (onClick) onClick()
         setIsOpen(false)
       }}
+      className={cn(
+        "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-surface-800 focus:bg-surface-800 disabled:pointer-events-none disabled:opacity-50",
+        className
+      )}
     >
-      {icon && <span className="text-surface-400">{icon}</span>}
       {children}
     </button>
   )
 }
 
-export function DropdownSeparator() {
-  return <div className="my-1 h-px bg-surface-800" />
+export function DropdownSeparator({ className }: { className?: string }) {
+  return <div className={cn("-mx-1 my-1 h-px bg-surface-800", className)} />
 }

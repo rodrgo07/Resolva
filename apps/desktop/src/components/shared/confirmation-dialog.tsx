@@ -1,4 +1,3 @@
-import * as React from "react"
 import { Modal } from "@/components/ui/modal"
 import { Button } from "@/components/ui/button"
 
@@ -10,7 +9,8 @@ export interface ConfirmationDialogProps {
   message: string
   confirmLabel?: string
   cancelLabel?: string
-  variant?: "danger" | "default"
+  variant?: "destructive" | "default"
+  isLoading?: boolean
 }
 
 export function ConfirmationDialog({
@@ -21,26 +21,31 @@ export function ConfirmationDialog({
   message,
   confirmLabel = "Confirmar",
   cancelLabel = "Cancelar",
-  variant = "default"
+  variant = "default",
+  isLoading = false
 }: ConfirmationDialogProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
-      <div className="mt-2">
-        <p className="text-sm text-surface-300">{message}</p>
-      </div>
-      <div className="mt-6 flex justify-end gap-3">
-        <Button variant="ghost" onClick={onClose}>
-          {cancelLabel}
-        </Button>
-        <Button 
-          variant={variant === "danger" ? "destructive" : "default"} 
-          onClick={() => {
-            onConfirm()
-            onClose()
-          }}
-        >
-          {confirmLabel}
-        </Button>
+      <div className="space-y-4">
+        <p className="text-sm text-surface-300 leading-relaxed">
+          {message}
+        </p>
+        <div className="flex justify-end gap-3 pt-2">
+          <Button 
+            variant="ghost" 
+            onClick={onClose}
+            disabled={isLoading}
+          >
+            {cancelLabel}
+          </Button>
+          <Button 
+            variant={variant} 
+            onClick={onConfirm}
+            isLoading={isLoading}
+          >
+            {confirmLabel}
+          </Button>
+        </div>
       </div>
     </Modal>
   )
