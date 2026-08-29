@@ -4,10 +4,25 @@ from pathlib import Path
 
 _ENV_FILE = Path(__file__).resolve().parent.parent.parent.parent / ".env"
 
+import os
+
+def _get_database_url() -> str:
+    appdata = os.environ.get("APPDATA")
+    if appdata:
+        resolva_dir = Path(appdata) / "Resolva"
+        resolva_dir.mkdir(parents=True, exist_ok=True)
+        db_path = resolva_dir / "resolva.db"
+        # If running in local dev and local db exists, prefer local unless specified
+        local_db = Path("resolva.db")
+        if local_db.exists():
+            return f"sqlite+aiosqlite:///{local_db.absolute().as_posix()}"
+        return f"sqlite+aiosqlite:///{db_path.as_posix()}"
+    return "sqlite+aiosqlite:///./resolva.db"
+
 class Settings(BaseSettings):
     BACKEND_HOST: str = "127.0.0.1"
     BACKEND_PORT: int = 8700
-    DATABASE_URL: str = "sqlite+aiosqlite:///./resolva.db"
+    DATABASE_URL: str = _get_database_url()
     
     AI_PROVIDER: str = "mock"
     AI_API_KEY: str = ""
