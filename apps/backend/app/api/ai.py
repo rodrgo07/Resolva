@@ -17,13 +17,20 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db))
     orchestrator = AIOrchestrator(db)
     return await orchestrator.process_message(request.message, request.conversation_id)
 
+from sqlalchemy.orm import selectinload
+from sqlalchemy import select
+
 @router.get("/conversations", response_model=List[ConversationResponse])
-async def get_conversations(skip: int = 0, limit: int = 20, repo: BaseRepository[AIConversation] = Depends(get_convo_repo)):
-    return await repo.get_all(skip, limit)
+async def get_conversations(skip: int = 0, limit: int = 20, db: AsyncSession = Depends(get_db)):
+    query = select(AIConversation).options(selectinload(AIConversation.messages)).order_by(AIConversation.updated_at.desc()).offset(skip).limit(limit)
+    res = await db.execute(query)
+    return list(res.scalars().all())
 
 @router.get("/conversations/{id}", response_model=ConversationResponse)
-async def get_conversation(id: int, repo: BaseRepository[AIConversation] = Depends(get_convo_repo)):
-    convo = await repo.get_by_id(id)
+async def get_conversation(id: int, db: AsyncSession = Depends(get_db)):
+    query = select(AIConversation).options(selectinload(AIConversation.messages)).where(AIConversation.id == id)
+    res = await db.execute(query)
+    convo = res.scalars().first()
     if not convo:
         raise HTTPException(status_code=404, detail="Conversa não encontrada")
     return convo
