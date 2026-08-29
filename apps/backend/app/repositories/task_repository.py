@@ -1,6 +1,7 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+from sqlalchemy.orm import selectinload
 from datetime import datetime
 
 from app.models.task import Task, TaskStatus
@@ -10,8 +11,18 @@ class TaskRepository(BaseRepository[Task]):
     def __init__(self, db: AsyncSession):
         super().__init__(Task, db)
 
+    async def get_by_id(self, id: int) -> Optional[Task]:
+        query = select(Task).options(selectinload(Task.subtasks)).where(Task.id == id)
+        result = await self.db.execute(query)
+        return result.scalars().first()
+
+    async def get_all(self, skip: int = 0, limit: int = 100) -> List[Task]:
+        query = select(Task).options(selectinload(Task.subtasks)).offset(skip).limit(limit)
+        result = await self.db.execute(query)
+        return list(result.scalars().all())
+
     async def get_pending(self) -> List[Task]:
-        query = select(Task).where(Task.status == TaskStatus.pendente)
+        query = select(Task).options(selectinload(Task.subtasks)).where(Task.status == TaskStatus.pendente)
         result = await self.db.execute(query)
         return list(result.scalars().all())
 
