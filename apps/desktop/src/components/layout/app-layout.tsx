@@ -4,19 +4,22 @@ import { Topbar } from "./topbar"
 import { CommandPalette } from "./command-palette"
 import { useAppStore } from "@/stores/app-store"
 
-import { DashboardPage } from "@/features/dashboard/page"
-import { TasksPage } from "@/features/tasks/page"
-import { StudiesPage } from "@/features/studies/page"
-import { FinancesPage } from "@/features/finances/page"
-import { EmailsPage } from "@/features/emails/page"
-import { CalendarPage } from "@/features/calendar/page"
-import { AutomationsPage } from "@/features/automations/page"
-import { AIPage } from "@/features/ai/page"
-import { ActivityPage } from "@/features/activity/page"
-import { SettingsPage } from "@/features/settings/page"
-import { NotificationsPage } from "@/features/notifications/page"
+import { Suspense, lazy } from "react"
+import { LoadingState } from "@/components/shared/loading-state"
 
-const pages: Record<string, React.ComponentType> = {
+const DashboardPage = lazy(() => import("@/features/dashboard/page").then(m => ({ default: m.DashboardPage })))
+const TasksPage = lazy(() => import("@/features/tasks/page").then(m => ({ default: m.TasksPage })))
+const StudiesPage = lazy(() => import("@/features/studies/page").then(m => ({ default: m.StudiesPage })))
+const FinancesPage = lazy(() => import("@/features/finances/page").then(m => ({ default: m.FinancesPage })))
+const EmailsPage = lazy(() => import("@/features/emails/page").then(m => ({ default: m.EmailsPage })))
+const CalendarPage = lazy(() => import("@/features/calendar/page").then(m => ({ default: m.CalendarPage })))
+const AutomationsPage = lazy(() => import("@/features/automations/page").then(m => ({ default: m.AutomationsPage })))
+const AIPage = lazy(() => import("@/features/ai/page").then(m => ({ default: m.AIPage })))
+const ActivityPage = lazy(() => import("@/features/activity/page").then(m => ({ default: m.ActivityPage })))
+const SettingsPage = lazy(() => import("@/features/settings/page").then(m => ({ default: m.SettingsPage })))
+const NotificationsPage = lazy(() => import("@/features/notifications/page").then(m => ({ default: m.NotificationsPage })))
+
+const pages: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
   dashboard: DashboardPage,
   tasks: TasksPage,
   studies: StudiesPage,
@@ -41,7 +44,9 @@ export function AppLayout() {
         <Topbar />
         <main className="flex-1 overflow-y-auto p-8 relative z-0">
           <div className="max-w-6xl mx-auto">
-            <CurrentPageComponent />
+            <Suspense fallback={<LoadingState message="Carregando módulo..." />}>
+              <CurrentPageComponent />
+            </Suspense>
           </div>
         </main>
       </div>
