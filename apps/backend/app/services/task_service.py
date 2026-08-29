@@ -19,9 +19,9 @@ class TaskService:
 
     async def create_task(self, task_data: TaskCreate) -> Task:
         data = task_data.model_dump(exclude_unset=True)
-        subtasks_data = data.pop("subtasks", None)
-        # Note: subtasks creation would be handled here
-        return await self.task_repo.create(**data)
+        data.pop("subtasks", None)
+        created = await self.task_repo.create(**data)
+        return await self.task_repo.get_by_id(created.id)
 
     async def update_task(self, task_id: int, task_data: TaskUpdate) -> Task:
         task = await self.get_task(task_id)

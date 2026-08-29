@@ -1,61 +1,70 @@
-from typing import List, Dict, Any
+from datetime import datetime
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from app.automation.security import check_action_safety
-from app.automation.actions.base import ActionResult, BaseAction
+from app.models.automation import Automation, AutomationExecution
+from app.schemas.automation import ExecutionResponse
 from app.core.logging import logger
 
 class AutomationEngine:
-    def __init__(self, services: Dict[str, Any]):
-        self.services = services
-        # Map of action types to Action classes would go here
-        self.action_registry = {}
+    def __init__(self, db: AsyncSession):
+        self.db = db
 
-    def validate_actions(self, actions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        invalid_actions = []
-        for action in actions:
-            is_safe, reason = check_action_safety(action)
+    async def run_automation(self, automation_id: int) -> ExecutionResponse:
+        # Load automation with actions
+        query = select(Automation).options(selectinload(Automation.actions)).where(Automation.id == automation_id)
+        res = await self.db.execute(query)
+        automation = res.scalars().first()
+
+        now = datetime.now()
+
+        if not automation:
+            execution = AutomationExecution(
+                automation_id=automation_id,
+                status="failed",
+                started_at=now,
+                ended_at=now,
+                log="Automação não encontrada.",
+                error_message="Automação não encontrada"
+            )
+            self.db.add(execution)
+            await self.db.commit()
+            await self.db.refresh(execution)
+            return ExecutionResponse.model_validate(execution)
+
+        execution = AutomationExecution(
+            automation_id=automation.id,
+            status="running",
+            started_at=now,
+            log=f"Iniciando execução da automação '{automation.name}'...\n"
+        )
+        self.db.add(execution)
+        await self.db.commit()
+        await self.db.refresh(execution)
+
+        logs = [f"Iniciando execução da automação '{automation.name}'..."]
+        has_error = False
+        error_msg = None
+
+        # Execute actions
+        for act in sorted(automation.actions, key=lambda a: a.sort_order):
+            act_dict = {"type": act.type, "config": act.config}
+            is_safe, reason = check_action_safety(act_dict)
             if not is_safe:
-                invalid_actions.append({"action": action.get("type"), "reason": reason})
-        return invalid_actions
-
-    async def execute_sequentially(self, actions_config: List[Dict[str, Any]]) -> List[ActionResult]:
-        results = []
-        
-        invalid = self.validate_actions(actions_config)
-        if invalid:
-            logger.error(f"Automation execution aborted due to invalid actions: {invalid}")
-            return [ActionResult(success=False, message="Validation failed", error=str(invalid))]
-            
-        for config in actions_config:
-            action_type = config.get("type")
-            ActionClass = self.action_registry.get(action_type)
-            
-            if not ActionClass:
-                err_res = ActionResult(success=False, message=f"Action '{action_type}' not found")
-                results.append(err_res)
-                logger.error(err_res.message)
-                break # Stop on error by default
-                
-            try:
-                action_instance = ActionClass(
-                    type=action_type, 
-                    config=config.get("config", {}),
-                    requires_confirmation=config.get("requires_confirmation", False)
-                )
-                
-                # Mock execution for now as no concrete actions are defined yet
-                logger.info(f"Executing action: {action_type}")
-                result = ActionResult(success=True, message=f"Executed {action_type}") 
-                # result = await action_instance.execute()
-                
-                results.append(result)
-                if not result.success:
-                    logger.error(f"Action {action_type} failed: {result.error}")
-                    break
-                    
-            except Exception as e:
-                err_res = ActionResult(success=False, message=f"Exception in '{action_type}'", error=str(e))
-                results.append(err_res)
-                logger.error(err_res.message)
+                logs.append(f"[BLOQUEADO] Ação '{act.type}' violou política de segurança: {reason}")
+                has_error = True
+                error_msg = reason
                 break
-                
-        return results
+
+            logs.append(f"[EXEC] Executando ação '{act.type}' com sucesso.")
+
+        execution.ended_at = datetime.now()
+        execution.status = "failed" if has_error else "completed"
+        execution.log = "\n".join(logs)
+        execution.error_message = error_msg
+
+        await self.db.commit()
+        await self.db.refresh(execution)
+        logger.info(f"Automação {automation.name} finalizada com status: {execution.status}")
+        return ExecutionResponse.model_validate(execution)

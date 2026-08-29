@@ -10,16 +10,16 @@ class MessageResponse(BaseModel):
     id: int
     role: str
     content: Optional[str]
-    tool_calls: Optional[Dict[str, Any]]
-    tool_results: Optional[Dict[str, Any]]
+    tool_calls: Optional[Any] = None
+    tool_results: Optional[Any] = None
     created_at: datetime
     
     model_config = ConfigDict(from_attributes=True)
 
 class ChatResponse(BaseModel):
-    reply: str
+    message: str
     conversation_id: int
-    message_id: int
+    tool_calls_made: List[str] = []
 
 class ConversationResponse(BaseModel):
     id: int

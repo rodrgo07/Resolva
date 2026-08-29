@@ -62,4 +62,5 @@ class TaskRepository(BaseRepository[Task]):
         }
 
     async def complete_task(self, id: int) -> Task:
-        return await self.update(id, status=TaskStatus.concluida, completed_at=datetime.now())
+        await self.update(id, status=TaskStatus.concluida, completed_at=datetime.now())
+        return await self.get_by_id(id)
