@@ -28,6 +28,12 @@ class StudyService:
         await self.get_subject(id)
         return await self.study_repo.delete(id)
         
+    async def create_session(self, data: SessionCreate) -> StudySession:
+        return await self.study_repo.create_session(data.model_dump(exclude_unset=True))
+
+    async def get_all_sessions(self, limit: int = 50) -> List[StudySession]:
+        return await self.study_repo.get_all_sessions(limit)
+
     async def get_sessions(self, subject_id: int) -> List[StudySession]:
         return await self.study_repo.get_sessions_by_subject(subject_id)
 

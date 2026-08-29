@@ -13,6 +13,18 @@ class StudyRepository(BaseRepository[StudySubject]):
     async def get_subjects(self) -> List[StudySubject]:
         return await self.get_all()
 
+    async def create_session(self, data: dict) -> StudySession:
+        sess = StudySession(**data)
+        self.db.add(sess)
+        await self.db.commit()
+        await self.db.refresh(sess)
+        return sess
+
+    async def get_all_sessions(self, limit: int = 50) -> List[StudySession]:
+        query = select(StudySession).order_by(StudySession.started_at.desc()).limit(limit)
+        result = await self.db.execute(query)
+        return list(result.scalars().all())
+
     async def get_sessions_by_subject(self, subject_id: int) -> List[StudySession]:
         query = select(StudySession).where(StudySession.subject_id == subject_id)
         result = await self.db.execute(query)

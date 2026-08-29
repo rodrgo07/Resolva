@@ -2,7 +2,10 @@ from fastapi import APIRouter, Depends, status
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
-from app.schemas.study import SubjectCreate, SubjectUpdate, SubjectResponse, SessionResponse, StudySummary
+from app.schemas.study import (
+    SubjectCreate, SubjectUpdate, SubjectResponse, 
+    SessionResponse, SessionCreate, StudySummary
+)
 from app.services.study_service import StudyService
 from app.repositories.study_repository import StudyRepository
 
@@ -34,8 +37,14 @@ async def delete_subject(id: int, service: StudyService = Depends(get_study_serv
     return None
 
 @router.get("/sessions", response_model=List[SessionResponse])
-async def get_sessions(subject_id: int, service: StudyService = Depends(get_study_service)):
-    return await service.get_sessions(subject_id)
+async def get_sessions(subject_id: int = None, service: StudyService = Depends(get_study_service)):
+    if subject_id:
+        return await service.get_sessions(subject_id)
+    return await service.get_all_sessions()
+
+@router.post("/sessions", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
+async def create_session(session_data: SessionCreate, service: StudyService = Depends(get_study_service)):
+    return await service.create_session(session_data)
 
 @router.get("/summary", response_model=StudySummary)
 async def get_summary(service: StudyService = Depends(get_study_service)):
