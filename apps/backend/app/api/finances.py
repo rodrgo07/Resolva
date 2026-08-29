@@ -3,7 +3,10 @@ from typing import List
 from datetime import date, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
-from app.schemas.finance import TransactionCreate, TransactionUpdate, TransactionResponse, FinanceSummary, CategoryBreakdown, BudgetResponse
+from app.schemas.finance import (
+    TransactionCreate, TransactionUpdate, TransactionResponse, 
+    FinanceSummary, CategoryBreakdown, BudgetResponse, CategoryResponse
+)
 from app.services.finance_service import FinanceService
 from app.repositories.finance_repository import FinanceRepository
 
@@ -49,6 +52,10 @@ async def get_category_breakdown(
     service: FinanceService = Depends(get_finance_service)
 ):
     return await service.get_category_breakdown(start_date, end_date)
+
+@router.get("/categories", response_model=List[CategoryResponse])
+async def get_categories(service: FinanceService = Depends(get_finance_service)):
+    return await service.get_categories()
 
 @router.get("/budgets", response_model=List[BudgetResponse])
 async def get_budgets(service: FinanceService = Depends(get_finance_service)):

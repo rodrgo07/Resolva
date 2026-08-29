@@ -19,7 +19,11 @@ class FinanceService:
         return transaction
 
     async def create_transaction(self, data: TransactionCreate) -> Expense:
-        return await self.finance_repo.create(**data.model_dump(exclude_unset=True))
+        created = await self.finance_repo.create(**data.model_dump(exclude_unset=True))
+        return await self.finance_repo.get_by_id(created.id)
+
+    async def get_categories(self):
+        return await self.finance_repo.get_categories()
 
     async def update_transaction(self, id: int, data: TransactionUpdate) -> Expense:
         await self.get_transaction(id)
