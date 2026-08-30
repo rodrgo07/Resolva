@@ -16,6 +16,7 @@ class EmailAccountResponse(BaseModel):
 class EmailResponse(BaseModel):
     id: int
     account_id: int
+    provider: Optional[str] = None
     external_id: str
     thread_id: Optional[str] = None
     from_address: str
@@ -51,11 +52,12 @@ class EmailSummary(BaseModel):
     needs_reply_count: int
     total_count: int
 
-class ConnectGmailInitResponse(BaseModel):
+class ConnectOAuthInitResponse(BaseModel):
     authorization_url: str
     state: str
+    provider: str
 
-class ConnectGmailCallbackRequest(BaseModel):
+class ConnectOAuthCallbackRequest(BaseModel):
     code: str
     state: str
     code_verifier: Optional[str] = None

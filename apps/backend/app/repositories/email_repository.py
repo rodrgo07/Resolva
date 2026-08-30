@@ -1,5 +1,6 @@
 ﻿from typing import List, Optional, Tuple, Dict, Any
 from sqlalchemy import select, func, and_, or_, desc
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.email import Email, EmailAccount
 from app.repositories.base import BaseRepository
@@ -9,8 +10,13 @@ class EmailRepository(BaseRepository[Email]):
     def __init__(self, db: AsyncSession):
         super().__init__(Email, db)
 
+    async def get_by_id(self, id: int) -> Optional[Email]:
+        stmt = select(Email).options(selectinload(Email.account)).where(Email.id == id)
+        res = await self.db.execute(stmt)
+        return res.scalars().first()
+
     async def get_by_external_id(self, account_id: int, external_id: str) -> Optional[Email]:
-        stmt = select(Email).where(
+        stmt = select(Email).options(selectinload(Email.account)).where(
             and_(Email.account_id == account_id, Email.external_id == external_id)
         )
         res = await self.db.execute(stmt)
@@ -19,21 +25,29 @@ class EmailRepository(BaseRepository[Email]):
     async def list_emails(
         self,
         account_id: Optional[int] = None,
+        provider: Optional[str] = None,
         filter_type: Optional[str] = None,
         search_query: Optional[str] = None,
         skip: int = 0,
         limit: int = 50
     ) -> Tuple[List[Email], int]:
-        stmt = select(Email)
+        stmt = select(Email).options(selectinload(Email.account)).join(EmailAccount, Email.account_id == EmailAccount.id)
         conditions = []
 
         if account_id:
             conditions.append(Email.account_id == account_id)
 
+        if provider and provider != "all":
+            conditions.append(func.lower(EmailAccount.provider) == provider.lower().strip())
+
         if filter_type == "unread":
             conditions.append(Email.is_read == False)
         elif filter_type == "important":
             conditions.append(Email.ai_classification.in_(["CRITICAL", "IMPORTANT", "urgente", "importante"]))
+        elif filter_type == "critical":
+            conditions.append(Email.ai_classification.in_(["CRITICAL", "urgente"]))
+        elif filter_type == "newsletter":
+            conditions.append(Email.ai_classification == "NEWSLETTER")
         elif filter_type == "needs_reply":
             conditions.append(Email.needs_reply == True)
         elif filter_type == "starred":
@@ -46,7 +60,8 @@ class EmailRepository(BaseRepository[Email]):
                     func.lower(Email.subject).like(q),
                     func.lower(Email.from_address).like(q),
                     func.lower(Email.from_name).like(q),
-                    func.lower(Email.body_preview).like(q)
+                    func.lower(Email.body_preview).like(q),
+                    func.lower(Email.body_text).like(q)
                 )
             )
 
@@ -63,14 +78,27 @@ class EmailRepository(BaseRepository[Email]):
         res = await self.db.execute(stmt)
         return list(res.scalars().all()), total
 
-    async def get_summary_stats(self, account_id: Optional[int] = None) -> Dict[str, int]:
-        base_cond = [Email.account_id == account_id] if account_id else []
+    async def get_summary_stats(self, account_id: Optional[int] = None, provider: Optional[str] = None) -> Dict[str, int]:
+        base_cond = []
+        if account_id:
+            base_cond.append(Email.account_id == account_id)
+        if provider and provider != "all":
+            base_cond.append(func.lower(EmailAccount.provider) == provider.lower().strip())
 
-        unread_stmt = select(func.count(Email.id)).where(and_(*base_cond, Email.is_read == False))
-        crit_stmt = select(func.count(Email.id)).where(and_(*base_cond, Email.ai_classification.in_(["CRITICAL", "urgente"])))
-        imp_stmt = select(func.count(Email.id)).where(and_(*base_cond, Email.ai_classification.in_(["IMPORTANT", "importante"])))
-        reply_stmt = select(func.count(Email.id)).where(and_(*base_cond, Email.needs_reply == True))
-        total_stmt = select(func.count(Email.id)).where(and_(*base_cond)) if base_cond else select(func.count(Email.id))
+        join_account = EmailAccount if (provider and provider != "all") else None
+
+        def apply_conds(query):
+            if join_account:
+                query = query.join(EmailAccount, Email.account_id == EmailAccount.id)
+            if base_cond:
+                query = query.where(and_(*base_cond))
+            return query
+
+        unread_stmt = apply_conds(select(func.count(Email.id)).where(Email.is_read == False))
+        crit_stmt = apply_conds(select(func.count(Email.id)).where(Email.ai_classification.in_(["CRITICAL", "urgente"])))
+        imp_stmt = apply_conds(select(func.count(Email.id)).where(Email.ai_classification.in_(["IMPORTANT", "importante"])))
+        reply_stmt = apply_conds(select(func.count(Email.id)).where(Email.needs_reply == True))
+        total_stmt = apply_conds(select(func.count(Email.id)))
 
         unread = (await self.db.execute(unread_stmt)).scalar() or 0
         critical = (await self.db.execute(crit_stmt)).scalar() or 0
@@ -96,7 +124,7 @@ class EmailRepository(BaseRepository[Email]):
             for k, v in normalized_data.items():
                 if hasattr(existing, k) and k not in ["id", "account_id"]:
                     setattr(existing, k, v)
-            existing.synced_at = datetime.utcnow()
+            existing.synced_at = datetime.now()
             await self.db.commit()
             await self.db.refresh(existing)
             return existing, False

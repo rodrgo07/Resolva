@@ -8,11 +8,18 @@ from app.config import settings
 def get_email_provider(provider_name: str = "gmail") -> EmailProvider:
     provider_name = provider_name.lower().strip()
     if provider_name == "gmail":
-        # Se client_id nao estiver configurado, podemos usar Mock se solicitado ou instanciar GmailProvider
+        if not settings.GMAIL_CLIENT_ID:
+            return MockEmailProvider()
         return GmailProvider(client_id=settings.GMAIL_CLIENT_ID, client_secret=settings.GMAIL_CLIENT_SECRET)
+    elif provider_name in ["outlook", "microsoft"]:
+        if not settings.OUTLOOK_CLIENT_ID:
+            return MockEmailProvider()
+        return OutlookProvider(
+            client_id=settings.OUTLOOK_CLIENT_ID,
+            client_secret=settings.OUTLOOK_CLIENT_SECRET,
+            tenant_id=settings.OUTLOOK_TENANT_ID
+        )
     elif provider_name == "mock":
         return MockEmailProvider()
-    elif provider_name == "outlook":
-        return OutlookProvider()
     else:
-        raise ValueError(f"Provedor de email nao suportado: {provider_name}")
+        raise ValueError(f"Provedor de e-mail não suportado: {provider_name}")

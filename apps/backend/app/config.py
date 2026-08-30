@@ -38,9 +38,10 @@ class Settings(BaseSettings):
     GMAIL_CLIENT_ID: Optional[str] = None
     GMAIL_CLIENT_SECRET: Optional[str] = None
 
-    # Microsoft / Outlook OAuth (future)
+    # Microsoft / Outlook OAuth
     OUTLOOK_CLIENT_ID: Optional[str] = None
     OUTLOOK_CLIENT_SECRET: Optional[str] = None
+    OUTLOOK_TENANT_ID: Optional[str] = "common"
 
     @property
     def allowed_origins_list(self) -> List[str]:

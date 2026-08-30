@@ -4,10 +4,11 @@ from app.repositories.email_repository import EmailRepository
 
 class ListImportantEmailsTool(BaseTool):
     name = "list_important_emails"
-    description = "Consulta no Resolva e lista os e-mails classificados como urgentes ou importantes pela triagem de IA."
+    description = "Consulta no Resolva e lista os e-mails classificados como urgentes ou importantes pela triagem de IA. Suporta filtro por provedor (gmail, outlook ou all)."
     parameters = {
         "type": "object",
         "properties": {
+            "provider": {"type": "string", "enum": ["all", "gmail", "outlook"], "description": "Filtro opcional por provedor de e-mail (gmail ou outlook)", "default": "all"},
             "limit": {"type": "integer", "description": "Número máximo de e-mails para listar", "default": 10}
         }
     }
@@ -19,12 +20,15 @@ class ListImportantEmailsTool(BaseTool):
             return {"error": "Sessão de banco de dados não disponível"}
         repo = EmailRepository(db)
         limit = args.get("limit", 10)
-        emails, total = await repo.list_emails(filter_type="important", limit=limit)
+        provider = args.get("provider", "all")
+        emails, total = await repo.list_emails(provider=provider, filter_type="important", limit=limit)
         return {
             "total_important": total,
+            "provider": provider,
             "emails": [
                 {
                     "id": e.id,
+                    "provider": e.account.provider if hasattr(e, "account") and e.account else "local",
                     "from": e.from_name or e.from_address,
                     "subject": e.subject,
                     "snippet": e.body_preview,
@@ -38,11 +42,12 @@ class ListImportantEmailsTool(BaseTool):
 
 class SearchEmailsTool(BaseTool):
     name = "search_emails"
-    description = "Pesquisa e-mails na caixa local do Resolva por termo ou palavra-chave (ex: faculdade, boleto, pagamento, projeto)."
+    description = "Pesquisa e-mails na caixa local unificada do Resolva (Gmail + Outlook) por termo ou palavra-chave (ex: faculdade, boleto, pagamento, projeto, reunião)."
     parameters = {
         "type": "object",
         "properties": {
             "query": {"type": "string", "description": "Termo de busca"},
+            "provider": {"type": "string", "enum": ["all", "gmail", "outlook"], "description": "Provedor a consultar", "default": "all"},
             "limit": {"type": "integer", "description": "Limite de resultados", "default": 10}
         },
         "required": ["query"]
@@ -55,14 +60,17 @@ class SearchEmailsTool(BaseTool):
             return {"error": "Sessão de banco de dados não disponível"}
         repo = EmailRepository(db)
         q = args.get("query", "")
+        provider = args.get("provider", "all")
         limit = args.get("limit", 10)
-        emails, total = await repo.list_emails(search_query=q, limit=limit)
+        emails, total = await repo.list_emails(provider=provider, search_query=q, limit=limit)
         return {
             "query": q,
+            "provider": provider,
             "total_found": total,
             "emails": [
                 {
                     "id": e.id,
+                    "provider": e.account.provider if hasattr(e, "account") and e.account else "local",
                     "from": e.from_name or e.from_address,
                     "subject": e.subject,
                     "preview": e.body_preview,
@@ -75,10 +83,11 @@ class SearchEmailsTool(BaseTool):
 
 class GetUnreadEmailsTool(BaseTool):
     name = "get_unread_emails"
-    description = "Retorna a lista de e-mails não lidos armazenados localmente."
+    description = "Retorna a lista de e-mails não lidos unificados de todas as contas conectadas (Gmail e Outlook)."
     parameters = {
         "type": "object",
         "properties": {
+            "provider": {"type": "string", "enum": ["all", "gmail", "outlook"], "description": "Filtrar por provedor", "default": "all"},
             "limit": {"type": "integer", "description": "Limite de e-mails", "default": 10}
         }
     }
@@ -89,12 +98,15 @@ class GetUnreadEmailsTool(BaseTool):
         if not db:
             return {"error": "Sessão de banco de dados não disponível"}
         repo = EmailRepository(db)
-        emails, total = await repo.list_emails(filter_type="unread", limit=args.get("limit", 10))
+        provider = args.get("provider", "all")
+        emails, total = await repo.list_emails(provider=provider, filter_type="unread", limit=args.get("limit", 10))
         return {
             "unread_count": total,
+            "provider": provider,
             "emails": [
                 {
                     "id": e.id,
+                    "provider": e.account.provider if hasattr(e, "account") and e.account else "local",
                     "from": e.from_name or e.from_address,
                     "subject": e.subject,
                     "received_at": str(e.received_at),
@@ -106,8 +118,13 @@ class GetUnreadEmailsTool(BaseTool):
 
 class GetEmailSummaryTool(BaseTool):
     name = "get_email_summary"
-    description = "Retorna o panorama geral da caixa postal: contagem de não lidos, urgentes, importantes e mensagens aguardando resposta."
-    parameters = {"type": "object", "properties": {}}
+    description = "Retorna o panorama geral da caixa postal (Gmail + Outlook): contagem de não lidos, urgentes, importantes e mensagens aguardando resposta."
+    parameters = {
+        "type": "object",
+        "properties": {
+            "provider": {"type": "string", "enum": ["all", "gmail", "outlook"], "description": "Filtrar resumo por provedor", "default": "all"}
+        }
+    }
     permission_level = "READ"
 
     async def execute(self, args: Dict[str, Any], services: Dict[str, Any]) -> Dict[str, Any]:
@@ -115,8 +132,9 @@ class GetEmailSummaryTool(BaseTool):
         if not db:
             return {"error": "Sessão de banco de dados não disponível"}
         repo = EmailRepository(db)
-        stats = await repo.get_summary_stats()
-        return stats
+        provider = args.get("provider", "all")
+        stats = await repo.get_summary_stats(provider=provider)
+        return {"provider": provider, **stats}
 
 class ArchiveEmailTool(BaseTool):
     name = "archive_email"

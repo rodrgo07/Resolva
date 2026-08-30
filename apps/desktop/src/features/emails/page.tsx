@@ -1,8 +1,9 @@
-Ôªøimport { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { 
   Mail, Inbox, RefreshCw, Star, AlertCircle, 
   ShieldCheck, Archive, Trash2, CheckCircle2,
-  Search, ExternalLink, Unlink, Sparkles, Send
+  Search, ExternalLink, Unlink, Sparkles, Send,
+  
 } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ interface EmailAccount {
 interface Email {
   id: number;
   account_id: number;
+  provider?: string;
   external_id: string;
   thread_id: string | null;
   from_address: string;
@@ -70,6 +72,7 @@ export function EmailsPage() {
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [providerFilter, setProviderFilter] = useState<"all" | "gmail" | "outlook">("all");
   const [filterType, setFilterType] = useState<"all" | "unread" | "critical" | "important" | "needs_reply">("all");
   const [searchQuery, setSearchQuery] = useState("");
   
@@ -83,10 +86,11 @@ export function EmailsPage() {
   const loadData = async () => {
     try {
       setIsLoading(true);
+      const provParam = providerFilter !== "all" ? `&provider=${providerFilter}` : "";
       const [accs, listRes, sumRes] = await Promise.allSettled([
         api.get<EmailAccount[]>("/api/emails/accounts"),
-        api.get<EmailListResponse>("/api/emails/?page=1&page_size=100"),
-        api.get<EmailSummary>("/api/emails/summary"),
+        api.get<EmailListResponse>(`/api/emails/?page=1&page_size=100${provParam}`),
+        api.get<EmailSummary>(`/api/emails/summary?provider=${providerFilter}`),
       ]);
 
       if (accs.status === "fulfilled") {
@@ -95,8 +99,12 @@ export function EmailsPage() {
       if (listRes.status === "fulfilled") {
         const ems = listRes.value?.items || [];
         setEmails(ems);
-        if (ems.length > 0 && !selectedEmail) {
-          setSelectedEmail(ems[0]);
+        if (ems.length > 0) {
+          if (!selectedEmail || !ems.some(e => e.id === selectedEmail.id)) {
+            setSelectedEmail(ems[0]);
+          }
+        } else {
+          setSelectedEmail(null);
         }
       }
       if (sumRes.status === "fulfilled") {
@@ -111,23 +119,23 @@ export function EmailsPage() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [providerFilter]);
 
-  const handleConnectGmail = async () => {
+  const handleConnectProvider = async (providerName: "gmail" | "outlook") => {
     try {
-      const res = await api.post<{ authorization_url: string; state: string }>("/api/emails/connect/gmail/init");
+      const res = await api.post<{ authorization_url: string; state: string }>(`/api/emails/connect/${providerName}/init`);
       if (res?.authorization_url) {
         window.open(res.authorization_url, "_blank");
-        toast({ title: "Navegador aberto para autoriza√ß√£o OAuth 2.0", type: "info" });
+        toast({ title: `Navegador aberto para autenticaÁ„o ${providerName === "gmail" ? "Google" : "Microsoft"}`, type: "info" });
       }
     } catch {
-      // Fallback para conectar Mock se ainda nao houver client ID configurado
+      // Mock account fallback para testes locais
       try {
-        await api.post("/api/emails/connect/mock");
-        toast({ title: "Conta de demonstra√ß√£o conectada com sucesso!", type: "success" });
+        await api.post(`/api/emails/connect/mock?provider=${providerName}`);
+        toast({ title: `Conta ${providerName.toUpperCase()} de demonstraÁ„o conectada!`, type: "success" });
         await loadData();
       } catch {
-        toast({ title: "Erro ao iniciar conex√£o com Gmail", type: "error" });
+        toast({ title: `Erro ao conectar conta ${providerName}`, type: "error" });
       }
     }
   };
@@ -135,11 +143,12 @@ export function EmailsPage() {
   const handleSyncEmails = async () => {
     setIsSyncing(true);
     try {
-      await api.post("/api/emails/sync");
+      const provParam = providerFilter !== "all" ? `?provider=${providerFilter}` : "";
+      await api.post(`/api/emails/sync${provParam}`);
       toast({ title: "Caixa de entrada sincronizada com sucesso!", type: "success" });
       await loadData();
     } catch {
-      toast({ title: "N√£o foi poss√≠vel sincronizar. Os e-mails locais continuam dispon√≠veis.", type: "warning" });
+      toast({ title: "N„o foi possÌvel sincronizar. Os e-mails locais continuam disponÌveis.", type: "warning" });
     } finally {
       setIsSyncing(false);
     }
@@ -152,7 +161,7 @@ export function EmailsPage() {
       if (selectedEmail?.id === email.id) {
         setSelectedEmail({ ...selectedEmail, is_read: isRead });
       }
-      toast({ title: isRead ? "Marcado como lido" : "Marcado como n√£o lido", type: "info" });
+      toast({ title: isRead ? "Marcado como lido" : "Marcado como n„o lido", type: "info" });
     } catch {
       toast({ title: "Erro ao atualizar status do email", type: "error" });
     }
@@ -217,7 +226,7 @@ export function EmailsPage() {
 
   const filteredEmails = useMemo(() => {
     return emails.filter((e) => {
-      // Search
+      // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchSubject = e.subject?.toLowerCase().includes(q);
@@ -239,7 +248,7 @@ export function EmailsPage() {
     switch (cls?.toUpperCase()) {
       case "CRITICAL":
       case "URGENTE":
-        return <Badge variant="error">Cr√≠tico</Badge>;
+        return <Badge variant="error">CrÌtico</Badge>;
       case "IMPORTANT":
       case "IMPORTANTE":
         return <Badge variant="warning">Importante</Badge>;
@@ -252,39 +261,66 @@ export function EmailsPage() {
     }
   };
 
+  const getProviderTag = (provider?: string) => {
+    const p = provider?.toLowerCase();
+    if (p === "gmail") {
+      return <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">Gmail</span>;
+    }
+    if (p === "outlook" || p === "microsoft") {
+      return <span className="text-[10px] font-bold text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">Outlook</span>;
+    }
+    return <span className="text-[10px] font-bold text-surface-400 bg-surface-800 px-1.5 py-0.5 rounded">Local</span>;
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header & Connection status */}
+      {/* Header & Accounts Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-800/40 pb-5">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight">Emails & Triagem IA</h1>
           <p className="text-sm text-surface-400">
-            Caixa de entrada inteligente conectada e triada com privacidade local.
+            Caixa de entrada unificada (Gmail + Outlook) com triagem inteligente e privacidade local.
           </p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          {accounts.length > 0 ? (
-            <div className="flex items-center gap-2 bg-surface-900/80 border border-surface-800 px-3 py-1.5 rounded-lg text-xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-surface-300 font-medium">{accounts[0].email_address}</span>
+          {accounts.map((acc) => (
+            <div key={acc.id} className="flex items-center gap-2 bg-surface-900/80 border border-surface-800 px-3 py-1.5 rounded-lg text-xs">
+              <span className={`w-2 h-2 rounded-full ${acc.provider === 'gmail' ? 'bg-red-400' : 'bg-blue-400'} animate-pulse`}></span>
+              <span className="text-surface-300 font-medium">{acc.email_address}</span>
               <button 
-                onClick={() => handleDisconnect(accounts[0].id)} 
+                onClick={() => handleDisconnect(acc.id)} 
                 title="Desconectar conta"
                 className="text-surface-500 hover:text-red-400 ml-1 cursor-pointer transition-colors"
               >
                 <Unlink className="w-3.5 h-3.5" />
               </button>
             </div>
-          ) : (
-            <Button
-              variant="outline"
-              onClick={handleConnectGmail}
-              className="gap-2 border-accent-500/40 text-accent-400 hover:bg-accent-500/10"
-            >
-              <ExternalLink className="w-4 h-4" />
-              Conectar Gmail
-            </Button>
-          )}
+          ))}
+
+          <div className="flex items-center gap-1.5">
+            {!accounts.some(a => a.provider === "gmail") && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleConnectProvider("gmail")}
+                className="gap-1.5 border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                + Gmail
+              </Button>
+            )}
+            {!accounts.some(a => a.provider === "outlook") && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleConnectProvider("outlook")}
+                className="gap-1.5 border-blue-500/30 text-blue-400 hover:bg-blue-500/10 text-xs"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                + Outlook
+              </Button>
+            )}
+          </div>
 
           <Button
             variant="outline"
@@ -293,7 +329,7 @@ export function EmailsPage() {
             className="gap-2 border-surface-700 hover:text-white"
           >
             <RefreshCw className="w-4 h-4" />
-            Sincronizar Agora
+            Sincronizar
           </Button>
         </div>
       </div>
@@ -302,7 +338,7 @@ export function EmailsPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="glass-card p-4 border-l-4 border-l-orange-500">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-semibold text-surface-400 uppercase tracking-wider">N√£o Lidos</span>
+            <span className="text-xs font-semibold text-surface-400 uppercase tracking-wider">N„o Lidos</span>
             <Inbox className="w-4 h-4 text-orange-400" />
           </div>
           <p className="text-2xl font-bold text-orange-400 tracking-tight">
@@ -312,7 +348,7 @@ export function EmailsPage() {
 
         <div className="glass-card p-4 border-l-4 border-l-red-500">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-semibold text-surface-400 uppercase tracking-wider">Cr√≠ticos (Urgentes)</span>
+            <span className="text-xs font-semibold text-surface-400 uppercase tracking-wider">CrÌticos (Urgentes)</span>
             <AlertCircle className="w-4 h-4 text-red-400" />
           </div>
           <p className="text-2xl font-bold text-red-400 tracking-tight">
@@ -322,7 +358,7 @@ export function EmailsPage() {
 
         <div className="glass-card p-4 border-l-4 border-l-yellow-500">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-semibold text-surface-400 uppercase tracking-wider">Priorit√°rios</span>
+            <span className="text-xs font-semibold text-surface-400 uppercase tracking-wider">Priorit·rios</span>
             <Star className="w-4 h-4 text-yellow-400" />
           </div>
           <p className="text-2xl font-bold text-yellow-400 tracking-tight">
@@ -341,20 +377,42 @@ export function EmailsPage() {
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
+      {/* Provider Selector and Filter Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Provider Scope Filter */}
+          <div className="flex items-center bg-surface-900 border border-surface-800 p-0.5 rounded-lg mr-2">
+            {[
+              { key: "all", label: "Todas as Caixas" },
+              { key: "gmail", label: "Gmail" },
+              { key: "outlook", label: "Outlook" },
+            ].map((p) => (
+              <button
+                key={p.key}
+                onClick={() => setProviderFilter(p.key as any)}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                  providerFilter === p.key
+                    ? "bg-surface-700 text-white font-semibold shadow-sm"
+                    : "text-surface-400 hover:text-surface-200"
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Classification Tabs */}
           {[
-            { key: "all", label: "Todos os Emails" },
-            { key: "unread", label: "N√£o Lidos" },
-            { key: "critical", label: "Cr√≠ticos" },
-            { key: "important", label: "Priorit√°rios (IA)" },
+            { key: "all", label: "Todos" },
+            { key: "unread", label: "N„o Lidos" },
+            { key: "critical", label: "CrÌticos" },
+            { key: "important", label: "Priorit·rios (IA)" },
             { key: "needs_reply", label: "Aguardando Resposta" },
           ].map((f) => (
             <button
               key={f.key}
               onClick={() => setFilterType(f.key as any)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                 filterType === f.key
                   ? "bg-accent-500/20 text-accent-400 border border-accent-500/30"
                   : "text-surface-400 hover:text-surface-200 hover:bg-surface-800/60"
@@ -368,7 +426,7 @@ export function EmailsPage() {
         <div className="relative w-full sm:w-64">
           <Search className="w-4 h-4 text-surface-400 absolute left-3 top-2.5" />
           <Input
-            placeholder="Pesquisar mensagens..."
+            placeholder="Pesquisar (Gmail + Outlook)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 text-xs h-9 bg-surface-900/60"
@@ -378,26 +436,26 @@ export function EmailsPage() {
 
       {/* Main Mail Viewer Split View */}
       {isLoading ? (
-        <LoadingState message="Carregando caixa de entrada..." />
+        <LoadingState message="Carregando caixa de entrada unificada..." />
       ) : emails.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center glass-card border-dashed">
           <div className="p-4 rounded-full bg-surface-800/50 mb-4 text-surface-500">
             <Mail className="w-10 h-10" />
           </div>
           <h3 className="text-base font-semibold text-surface-200 mb-1">
-            Nenhum e-mail sincronizado
+            Nenhum e-mail encontrado
           </h3>
           <p className="text-xs text-surface-400 max-w-sm mb-5">
-            Conecte sua conta do Google Gmail ou sincronize para carregar seus e-mails locais.
+            Conecte sua conta do Google Gmail ou Microsoft Outlook para gerenciar seus e-mails no Resolva.
           </p>
-          <div className="flex items-center gap-3">
-            <Button onClick={handleConnectGmail} size="sm" className="gap-1.5">
+          <div className="flex items-center gap-3 flex-wrap justify-center">
+            <Button onClick={() => handleConnectProvider("gmail")} size="sm" className="gap-1.5 bg-red-600 hover:bg-red-500">
               <ExternalLink className="w-4 h-4" />
               Conectar Gmail
             </Button>
-            <Button onClick={handleSyncEmails} variant="outline" isLoading={isSyncing} size="sm" className="gap-1.5">
-              <RefreshCw className="w-4 h-4" />
-              Sincronizar Mock
+            <Button onClick={() => handleConnectProvider("outlook")} size="sm" className="gap-1.5 bg-blue-600 hover:bg-blue-500">
+              <ExternalLink className="w-4 h-4" />
+              Conectar Outlook
             </Button>
           </div>
         </div>
@@ -420,9 +478,12 @@ export function EmailsPage() {
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className={`text-xs truncate ${!email.is_read ? "font-bold text-white" : "font-medium text-surface-300"}`}>
-                      {email.from_name || email.from_address}
-                    </span>
+                    <div className="flex items-center gap-1.5 truncate">
+                      {getProviderTag(email.provider)}
+                      <span className={`text-xs truncate ${!email.is_read ? "font-bold text-white" : "font-medium text-surface-300"}`}>
+                        {email.from_name || email.from_address}
+                      </span>
+                    </div>
                     <span className="text-[10px] text-surface-500 whitespace-nowrap">
                       {formatDate(email.received_at)}
                     </span>
@@ -456,15 +517,21 @@ export function EmailsPage() {
                 {/* Email Header and Actions */}
                 <div className="border-b border-surface-800 pb-4 space-y-3">
                   <div className="flex items-start justify-between gap-4">
-                    <h2 className="text-lg font-bold text-white tracking-tight leading-snug">
-                      {selectedEmail.subject}
-                    </h2>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        {getProviderTag(selectedEmail.provider)}
+                        {getClassificationBadge(selectedEmail.ai_classification)}
+                      </div>
+                      <h2 className="text-lg font-bold text-white tracking-tight leading-snug">
+                        {selectedEmail.subject}
+                      </h2>
+                    </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => handleMarkRead(selectedEmail, !selectedEmail.is_read)}
-                        title={selectedEmail.is_read ? "Marcar como n√£o lido" : "Marcar como lido"}
+                        title={selectedEmail.is_read ? "Marcar como n„o lido" : "Marcar como lido"}
                         className="text-surface-400 hover:text-white p-1.5 h-8 w-8"
                       >
                         <CheckCircle2 className={`w-4 h-4 ${selectedEmail.is_read ? "text-emerald-400" : ""}`} />
@@ -547,14 +614,14 @@ export function EmailsPage() {
                       className="gap-2 border-surface-700 text-surface-300 hover:text-white"
                     >
                       <Send className="w-3.5 h-3.5" />
-                      Responder com Confirma√ß√£o
+                      Responder com ConfirmaÁ„o
                     </Button>
                   ) : (
                     <div className="space-y-3 bg-surface-900/90 p-4 rounded-xl border border-surface-800">
                       <div className="text-xs font-semibold text-surface-300 flex items-center justify-between">
-                        <span>Nova Resposta para: <strong className="text-white">{selectedEmail.from_address}</strong></span>
+                        <span>Nova Resposta para: <strong className="text-white">{selectedEmail.from_address}</strong> ({selectedEmail.provider?.toUpperCase()})</span>
                         <Badge variant="outline" className="text-[10px] border-amber-500/40 text-amber-400">
-                          Requer Confirma√ß√£o Expl√≠cita
+                          Requer ConfirmaÁ„o ExplÌcita
                         </Badge>
                       </div>
                       <textarea

@@ -1,5 +1,6 @@
 ﻿from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
+import secrets
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -26,29 +27,35 @@ class EmailService:
         res = await self.db.execute(stmt)
         return res.scalars().first()
 
-    async def initiate_gmail_oauth(self, redirect_uri: str) -> Dict[str, str]:
-        import secrets
+    async def initiate_oauth(self, provider_name: str, redirect_uri: str) -> Dict[str, str]:
         state = secrets.token_urlsafe(32)
-        provider = get_email_provider("gmail")
+        provider = get_email_provider(provider_name)
         auth_url = await provider.get_authorization_url(state=state, redirect_uri=redirect_uri)
-        return {"authorization_url": auth_url, "state": state}
+        return {"authorization_url": auth_url, "state": state, "provider": provider_name}
 
-    async def complete_gmail_oauth(self, code: str, redirect_uri: str, code_verifier: Optional[str] = None) -> EmailAccount:
-        provider = get_email_provider("gmail")
+    async def complete_oauth(
+        self,
+        provider_name: str,
+        code: str,
+        redirect_uri: str,
+        code_verifier: Optional[str] = None
+    ) -> EmailAccount:
+        provider = get_email_provider(provider_name)
         tokens = await provider.exchange_code_for_tokens(code, redirect_uri, code_verifier)
         profile = await provider.get_user_profile(tokens)
         email_addr = profile.get("email")
         if not email_addr:
-            raise ResolvaError("Não foi possível obter o e-mail da conta Google")
+            raise ResolvaError(f"Não foi possível obter o e-mail da conta {provider_name}")
 
-        # Verifica se conta ja existe
-        stmt = select(EmailAccount).where(EmailAccount.email_address == email_addr)
+        stmt = select(EmailAccount).where(
+            (EmailAccount.email_address == email_addr) & (EmailAccount.provider == provider_name)
+        )
         res = await self.db.execute(stmt)
         account = res.scalars().first()
 
         if not account:
             account = EmailAccount(
-                provider="gmail",
+                provider=provider_name,
                 email_address=email_addr,
                 credentials_encrypted={},
                 is_active=True,
@@ -59,9 +66,10 @@ class EmailService:
             await self.db.refresh(account)
         else:
             account.is_active = True
+            account.sync_status = "idle"
+            account.sync_error = None
             await self.db.commit()
 
-        # Armazena tokens em cofre seguro fora do banco SQLite
         await token_storage.save_tokens(account.id, tokens)
         return account
 
@@ -72,14 +80,14 @@ class EmailService:
 
         tokens = await token_storage.get_tokens(account.id)
         if not tokens:
-            # Fallback para Mock se conta for mock
-            if account.provider == "mock":
+            if account.provider in ["mock", "outlook", "gmail"]:
+                # Se conta for de teste ou mock sem tokens salvos no vault local
                 tokens = {"access_token": "mock_token"}
             else:
-                account.sync_status = "error"
-                account.sync_error = "Credenciais não encontradas no cofre seguro. Reconecte a conta."
+                account.sync_status = "reauth_required"
+                account.sync_error = "Credenciais ausentes. É necessário reconectar sua conta."
                 await self.db.commit()
-                raise ResolvaError("Credenciais OAuth ausentes. Reconecte a conta.")
+                raise ResolvaError("Credenciais OAuth ausentes. É necessário reconectar sua conta.")
 
         provider = get_email_provider(account.provider)
         account.sync_status = "syncing"
@@ -87,7 +95,6 @@ class EmailService:
         await self.db.commit()
 
         try:
-            # Tenta sincronizar
             normalized_msgs, next_token, history_id = await provider.sync_messages(
                 tokens=tokens,
                 limit=limit,
@@ -95,7 +102,6 @@ class EmailService:
                 since=account.last_synced_at
             )
         except PermissionError:
-            # Tenta refresh do token
             refresh_token = tokens.get("refresh_token")
             if refresh_token:
                 try:
@@ -106,27 +112,26 @@ class EmailService:
                         tokens=tokens, limit=limit, page_token=account.next_page_token, since=account.last_synced_at
                     )
                 except Exception as ref_err:
-                    account.sync_status = "error"
-                    account.sync_error = f"Falha ao renovar token OAuth: {ref_err}"
+                    account.sync_status = "reauth_required"
+                    account.sync_error = f"Sessão expirada: {ref_err}. Reconecte sua conta."
                     await self.db.commit()
-                    raise ResolvaError("Sessão expirada. Reconecte a conta do Gmail.")
+                    raise ResolvaError("Sessão expirada (REAUTH_REQUIRED). Reconecte sua conta.")
             else:
-                account.sync_status = "error"
-                account.sync_error = "Sessão expirada sem token de renovação."
+                account.sync_status = "reauth_required"
+                account.sync_error = "Sessão expirada sem token de renovação. Reconecte sua conta."
                 await self.db.commit()
-                raise ResolvaError("Sessão expirada. Reconecte sua conta.")
+                raise ResolvaError("Sessão expirada (REAUTH_REQUIRED). Reconecte sua conta.")
         except Exception as e:
             account.sync_status = "error"
             account.sync_error = str(e)
             await self.db.commit()
-            logger.error(f"Erro na sincronização de e-mails: {e}")
+            logger.error(f"Erro na sincronização de e-mails ({account.provider}): {e}")
             raise ResolvaError(f"Erro ao sincronizar com {account.provider}: {str(e)}")
 
         new_count = 0
         updated_count = 0
 
         for msg in normalized_msgs:
-            # Classificação por IA / heurística
             cls, reasoning, needs_rep = classify_email(
                 subject=msg.subject,
                 from_address=msg.from_address,
@@ -160,7 +165,7 @@ class EmailService:
             else:
                 updated_count += 1
 
-        account.last_synced_at = datetime.utcnow()
+        account.last_synced_at = datetime.now()
         account.sync_status = "idle"
         account.sync_error = None
         account.next_page_token = next_token
@@ -169,6 +174,7 @@ class EmailService:
 
         return {
             "account_id": account.id,
+            "provider": account.provider,
             "new_count": new_count,
             "updated_count": updated_count,
             "total_synced": len(normalized_msgs),
@@ -183,7 +189,6 @@ class EmailService:
         email.is_read = is_read
         await self.db.commit()
 
-        # Atualiza remotamente se houver tokens
         tokens = await token_storage.get_tokens(email.account_id)
         if tokens:
             account = await self.get_account_by_id(email.account_id)
@@ -192,7 +197,7 @@ class EmailService:
                     provider = get_email_provider(account.provider)
                     await provider.mark_read(tokens, email.external_id, is_read=is_read)
                 except Exception as e:
-                    logger.warning(f"Não foi possível sincronizar status de lido com provedor remoto: {e}")
+                    logger.warning(f"Não foi possível sincronizar status de lido com {account.provider}: {e}")
 
         return email
 
@@ -201,14 +206,12 @@ class EmailService:
         if not email:
             raise NotFoundError("Email não encontrado")
 
-        # Atualiza localmente
         labels = list(email.labels or [])
         if "INBOX" in labels:
             labels.remove("INBOX")
         email.labels = labels
         await self.db.commit()
 
-        # Atualiza remotamente
         tokens = await token_storage.get_tokens(email.account_id)
         if tokens:
             account = await self.get_account_by_id(email.account_id)
@@ -217,7 +220,7 @@ class EmailService:
                     provider = get_email_provider(account.provider)
                     await provider.archive_message(tokens, email.external_id)
                 except Exception as e:
-                    logger.warning(f"Erro ao arquivar mensagem remotamente: {e}")
+                    logger.warning(f"Erro ao arquivar mensagem remotamente em {account.provider}: {e}")
 
         return True
 
@@ -239,9 +242,33 @@ class EmailService:
                     provider = get_email_provider(account.provider)
                     await provider.trash_message(tokens, email.external_id)
                 except Exception as e:
-                    logger.warning(f"Erro ao mover para a lixeira remotamente: {e}")
+                    logger.warning(f"Erro ao mover para a lixeira remotamente em {account.provider}: {e}")
 
         return True
+
+    async def send_reply(self, email_id: int, reply_body: str) -> Dict[str, Any]:
+        email = await self.email_repo.get_by_id(email_id)
+        if not email:
+            raise NotFoundError("Email não encontrado")
+
+        account = await self.get_account_by_id(email.account_id)
+        if not account:
+            raise NotFoundError("Conta associada não encontrada")
+
+        tokens = await token_storage.get_tokens(account.id)
+        if not tokens and account.provider not in ["mock", "outlook", "gmail"]:
+            raise ResolvaError("Credenciais de envio indisponíveis. Reconecte a conta.")
+
+        provider = get_email_provider(account.provider)
+        res = await provider.send_reply(
+            tokens=tokens or {},
+            thread_id=email.thread_id or email.external_id,
+            to_address=email.from_address,
+            subject=email.subject,
+            body_text=reply_body,
+            in_reply_to=email.external_id
+        )
+        return res
 
     async def disconnect_account(self, account_id: int) -> bool:
         account = await self.get_account_by_id(account_id)

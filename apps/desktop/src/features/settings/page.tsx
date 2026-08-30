@@ -72,21 +72,21 @@ export function SettingsPage() {
     loadSettings();
   }, []);
 
-  const handleConnectGmail = async () => {
+  const handleConnectProvider = async (providerName: "gmail" | "outlook") => {
     try {
-      const res = await api.post<{ authorization_url: string; state: string }>("/api/emails/connect/gmail/init");
+      const res = await api.post<{ authorization_url: string; state: string }>(`/api/emails/connect/${providerName}/init`);
       if (res?.authorization_url) {
         window.open(res.authorization_url, "_blank");
-        toast({ title: "Navegador aberto para autenticação Google OAuth", type: "info" });
+        toast({ title: `Navegador aberto para autenticação ${providerName === 'gmail' ? 'Google' : 'Microsoft'} OAuth`, type: "info" });
       }
     } catch {
       // Mock account fallback
       try {
-        await api.post("/api/emails/connect/mock");
-        toast({ title: "Conta de demonstração conectada", type: "success" });
+        await api.post(`/api/emails/connect/mock?provider=${providerName}`);
+        toast({ title: `Conta ${providerName.toUpperCase()} de demonstração conectada`, type: "success" });
         await loadSettings();
       } catch {
-        toast({ title: "Erro ao iniciar conexão com Gmail", type: "error" });
+        toast({ title: `Erro ao iniciar conexão com ${providerName}`, type: "error" });
       }
     }
   };
@@ -141,6 +141,9 @@ export function SettingsPage() {
     }
   };
 
+  const gmailAccount = emailAccounts.find(a => a.provider === "gmail");
+  const outlookAccount = emailAccounts.find(a => a.provider === "outlook");
+
   return (
     <div className="space-y-6 animate-fade-in max-w-4xl mx-auto">
       {/* Header */}
@@ -148,7 +151,7 @@ export function SettingsPage() {
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight">Configurações</h1>
           <p className="text-sm text-surface-400">
-            Personalize temas, integrações de e-mail, inteligência artificial e sistema.
+            Personalize temas, integrações de e-mail (Gmail & Outlook), inteligência artificial e sistema.
           </p>
         </div>
       </div>
@@ -253,7 +256,7 @@ export function SettingsPage() {
             <div className="glass-card p-5 space-y-5">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Mail className="w-4 h-4 text-accent-400" />
-                Integrações de E-mail
+                Provedores de E-mail Conectados
               </h3>
 
               {/* Gmail Card */}
@@ -265,27 +268,27 @@ export function SettingsPage() {
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-white">Google Gmail</h4>
-                      <p className="text-xs text-surface-400">Autenticação OAuth 2.0 segura com triagem local por IA</p>
+                      <p className="text-xs text-surface-400">OAuth 2.0 PKCE com triagem local por IA</p>
                     </div>
                   </div>
-                  {emailAccounts.length > 0 ? (
+                  {gmailAccount ? (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Conectado
                     </span>
                   ) : (
-                    <Button type="button" onClick={handleConnectGmail} size="sm" className="gap-1.5">
+                    <Button type="button" onClick={() => handleConnectProvider("gmail")} size="sm" className="gap-1.5 bg-red-600 hover:bg-red-500 text-white">
                       <ExternalLink className="w-3.5 h-3.5" />
                       Conectar Gmail
                     </Button>
                   )}
                 </div>
 
-                {emailAccounts.map(acc => (
-                  <div key={acc.id} className="pt-3 border-t border-surface-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-surface-300">
+                {gmailAccount && (
+                  <div className="pt-3 border-t border-surface-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-surface-300">
                     <div>
-                      <p className="font-semibold text-white">{acc.email_address}</p>
+                      <p className="font-semibold text-white">{gmailAccount.email_address}</p>
                       <p className="text-surface-500 text-[11px]">
-                        Última sincronização: {acc.last_synced_at ? new Date(acc.last_synced_at).toLocaleString("pt-BR") : "Nunca"}
+                        Última sincronização: {gmailAccount.last_synced_at ? new Date(gmailAccount.last_synced_at).toLocaleString("pt-BR") : "Nunca"}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -298,13 +301,13 @@ export function SettingsPage() {
                         className="gap-1 text-xs border-surface-700 hover:text-white"
                       >
                         <RefreshCw className="w-3 h-3" />
-                        Sincronizar Agora
+                        Sincronizar
                       </Button>
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDisconnectEmail(acc.id)}
+                        onClick={() => handleDisconnectEmail(gmailAccount.id)}
                         className="text-red-400 hover:bg-red-500/10 text-xs"
                       >
                         <Unlink className="w-3.5 h-3.5 mr-1" />
@@ -312,23 +315,66 @@ export function SettingsPage() {
                       </Button>
                     </div>
                   </div>
-                ))}
+                )}
               </div>
 
-              {/* Outlook Card (Próxima Fase) */}
-              <div className="border border-surface-800 rounded-xl p-4 bg-surface-900/20 opacity-60 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center font-bold text-blue-400">
-                    O
+              {/* Outlook / Microsoft 365 Card */}
+              <div className="border border-surface-800 rounded-xl p-4 bg-surface-900/40 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center font-bold text-blue-400">
+                      O
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white">Microsoft Outlook / 365</h4>
+                      <p className="text-xs text-surface-400">Microsoft Graph API, OAuth 2.0 e sincronização incremental</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-surface-300">Microsoft Outlook / 365</h4>
-                    <p className="text-xs text-surface-500">Arquitetura preparada para integração na próxima fase</p>
-                  </div>
+                  {outlookAccount ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Conectado
+                    </span>
+                  ) : (
+                    <Button type="button" onClick={() => handleConnectProvider("outlook")} size="sm" className="gap-1.5 bg-blue-600 hover:bg-blue-500 text-white">
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Conectar Outlook
+                    </Button>
+                  )}
                 </div>
-                <span className="text-[11px] font-medium bg-surface-800 text-surface-400 px-2.5 py-1 rounded-md border border-surface-700">
-                  Em Breve
-                </span>
+
+                {outlookAccount && (
+                  <div className="pt-3 border-t border-surface-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-surface-300">
+                    <div>
+                      <p className="font-semibold text-white">{outlookAccount.email_address}</p>
+                      <p className="text-surface-500 text-[11px]">
+                        Última sincronização: {outlookAccount.last_synced_at ? new Date(outlookAccount.last_synced_at).toLocaleString("pt-BR") : "Nunca"}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        isLoading={isSyncingEmail}
+                        onClick={handleSyncNow}
+                        className="gap-1 text-xs border-surface-700 hover:text-white"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        Sincronizar
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDisconnectEmail(outlookAccount.id)}
+                        className="text-red-400 hover:bg-red-500/10 text-xs"
+                      >
+                        <Unlink className="w-3.5 h-3.5 mr-1" />
+                        Desconectar
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -399,13 +445,13 @@ export function SettingsPage() {
                   <strong>Banco de dados:</strong> SQLite assíncrono com WAL mode ativo em <code className="text-accent-400">./resolva.db</code>
                 </p>
                 <p>
-                  <strong>Cofre de Tokens:</strong> Windows DPAPI / Vault isolado no AppData (tokens OAuth nunca em texto puro no SQLite).
+                  <strong>Cofre de Tokens:</strong> Windows DPAPI / Vault isolado no AppData (tokens OAuth de Gmail e Outlook protegidos fora do SQLite).
                 </p>
                 <p>
                   <strong>Backend:</strong> FastAPI assíncrono rodando em <code className="text-accent-400">http://127.0.0.1:8700</code>
                 </p>
                 <p>
-                  <strong>Segurança:</strong> Sanitização estrita de HTML de e-mails, validação por whitelist e confirmação para ações de escrita.
+                  <strong>Segurança:</strong> Sanitização estrita de HTML, proteção contra rate limit (429) e confirmação obrigatória de ações de escrita.
                 </p>
               </div>
             </div>

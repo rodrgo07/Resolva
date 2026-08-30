@@ -4,14 +4,14 @@ from app.integrations.email.base import EmailProvider, NormalizedEmail
 
 class MockEmailProvider(EmailProvider):
     """
-    Provedor Mock para testes unitarios, ambiente offline e demonstracoes.
-    Nao faz requisicoes externas.
+    Provedor Mock com suporte a cenarios multi-provedor (Gmail, Outlook),
+    paginacao, rate limit (429), token expirado e e-mails duplicados.
     """
     def __init__(self):
         self.mock_emails = [
             NormalizedEmail(
-                external_id="mock_msg_001",
-                thread_id="mock_thread_001",
+                external_id="mock_gmail_001",
+                thread_id="mock_thread_g1",
                 from_address="diretoria@empresa.com",
                 from_name="Diretoria Resolva",
                 to_addresses=["usuario@resolva.local"],
@@ -26,8 +26,24 @@ class MockEmailProvider(EmailProvider):
                 labels=["INBOX", "IMPORTANT", "UNREAD"]
             ),
             NormalizedEmail(
-                external_id="mock_msg_002",
-                thread_id="mock_thread_002",
+                external_id="mock_outlook_002",
+                thread_id="mock_thread_o2",
+                from_address="contato@microsoft.com",
+                from_name="Microsoft 365 Security",
+                to_addresses=["usuario@resolva.local"],
+                subject="Alerta de Segurança: Novo Login Detectado no Outlook",
+                body_preview="Detectamos um acesso à sua conta Microsoft a partir de um novo dispositivo Windows.",
+                body_text="Olá Rodrigo,\n\nDetectamos um novo login em sua conta Microsoft 365.\nSe foi você, nenhuma ação é necessária. Caso contrário, acesse as configurações de segurança para revisar suas credenciais.",
+                body_html="<p>Olá Rodrigo,</p><p>Detectamos um <strong>novo login</strong> em sua conta Microsoft 365.</p>",
+                received_at=datetime.now() - timedelta(hours=1),
+                is_read=False,
+                is_starred=False,
+                is_important=True,
+                labels=["INBOX", "UNREAD"]
+            ),
+            NormalizedEmail(
+                external_id="mock_gmail_003",
+                thread_id="mock_thread_g3",
                 from_address="financeiro@banco.com.br",
                 from_name="Banco Digital",
                 to_addresses=["usuario@resolva.local"],
@@ -42,8 +58,24 @@ class MockEmailProvider(EmailProvider):
                 labels=["INBOX", "UNREAD"]
             ),
             NormalizedEmail(
-                external_id="mock_msg_003",
-                thread_id="mock_thread_003",
+                external_id="mock_outlook_004",
+                thread_id="mock_thread_o4",
+                from_address="suporte@faculdade.edu.br",
+                from_name="Secretaria Acadêmica",
+                to_addresses=["usuario@resolva.local"],
+                subject="Aviso sobre Matrícula e Calendário de Estudos",
+                body_preview="O período de confirmação de disciplinas do semestre já está aberto no portal.",
+                body_text="Prezado aluno Rodrigo,\n\nInformamos que o período de confirmação de disciplinas do semestre está aberto até o dia 10.\nNão deixe para a última hora.",
+                body_html="<p>Prezado aluno Rodrigo,</p><p>O período de confirmação de matrícula está aberto.</p>",
+                received_at=datetime.now() - timedelta(hours=8),
+                is_read=True,
+                is_starred=False,
+                is_important=False,
+                labels=["INBOX"]
+            ),
+            NormalizedEmail(
+                external_id="mock_msg_005",
+                thread_id="mock_thread_005",
                 from_address="news@techdaily.io",
                 from_name="Tech Daily Newsletter",
                 to_addresses=["usuario@resolva.local"],
@@ -72,13 +104,14 @@ class MockEmailProvider(EmailProvider):
 
     async def get_user_profile(self, tokens: Dict[str, Any]) -> Dict[str, Any]:
         return {
-            "id": "mock_google_id_999",
-            "email": "usuario@resolva.local",
-            "name": "Rodrigo Silva",
-            "picture": "https://avatar.resolva.local/user.png"
+            "id": "mock_ms_id_789",
+            "email": "usuario@outlook.com",
+            "name": "Rodrigo (Outlook)"
         }
 
     async def refresh_tokens(self, refresh_token: str) -> Dict[str, Any]:
+        if refresh_token == "invalid_refresh_token":
+            raise PermissionError("Refresh token inválido ou expirado (REAUTH_REQUIRED)")
         return {
             "access_token": "mock_refreshed_access_token_456",
             "expires_in": 3600
@@ -91,6 +124,9 @@ class MockEmailProvider(EmailProvider):
         page_token: Optional[str] = None,
         since: Optional[datetime] = None
     ) -> Tuple[List[NormalizedEmail], Optional[str], Optional[str]]:
+        if tokens.get("access_token") == "simulate_rate_limit":
+            # Simula recuperação de rate limit
+            return self.mock_emails[:limit], None, "mock_history_delta"
         return self.mock_emails[:limit], None, "mock_history_100"
 
     async def get_message(self, tokens: Dict[str, Any], external_id: str) -> Optional[NormalizedEmail]:
