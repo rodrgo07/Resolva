@@ -14,3 +14,8 @@ from .device import (
     Device, DeviceSession, PairingRequest, SyncOperation, DevicePlatform, DeviceStatus,
     RemoteCommandRecord, RemotePendingAction, PushDeviceToken, RemoteActionStatus
 )
+from .agent_memory import AgentMemoryItem, MemoryType, MemoryStatus
+from .agent_intelligence import (
+    AgentPlan, AgentPlanItem, AgentRecommendation, AgentRecommendationFeedback,
+    PlanStatus, RecommendationFeedbackStatus
+)
