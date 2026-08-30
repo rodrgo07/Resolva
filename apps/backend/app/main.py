@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from app.config import settings
+from app.config import settings, validate_production_security
 from app.database import engine, Base
 import app.models # Garante que todos os modelos estejam importados antes do create_all
 from app.api.router import api_router
@@ -16,9 +16,13 @@ from app.notifications.scheduler import notification_scheduler
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Validação de segurança estrita para ambientes de produção (Issue 1)
+    validate_production_security()
+    
     logger.info("Resolva Backend starting up...")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
     
     # Inicia schedulers persistentes em background
     try:
