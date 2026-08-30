@@ -1,4 +1,4 @@
-import uvicorn
+﻿import uvicorn
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,14 +10,27 @@ from app.api.router import api_router
 from app.__init__ import __version__
 from app.core.exceptions import ResolvaError, NotFoundError, ValidationError, PermissionError, AutomationSecurityError
 from app.core.logging import logger
+from app.automation.scheduler import scheduler
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Resolva Backend starting up...")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    
+    # Inicia scheduler de automações persistente
+    try:
+        await scheduler.start()
+    except Exception as e:
+        logger.warning(f"Não foi possível iniciar o scheduler em background: {e}")
+
     yield
+
     logger.info("Resolva Backend shutting down...")
+    try:
+        await scheduler.stop()
+    except Exception:
+        pass
     await engine.dispose()
 
 app = FastAPI(

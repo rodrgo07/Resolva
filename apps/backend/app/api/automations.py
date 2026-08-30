@@ -1,77 +1,190 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List
+﻿from fastapi import APIRouter, Depends, HTTPException, Query, status
+from typing import List, Optional, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+
 from app.database import get_db
-from app.schemas.automation import AutomationCreate, AutomationUpdate, AutomationResponse, ExecutionResponse
-from app.repositories.base import BaseRepository
-from app.models.automation import Automation, AutomationExecution
+from app.models.automation import Automation, AutomationTrigger, AutomationAction, AutomationExecution
+from app.schemas.automation import (
+    AutomationCreate, AutomationUpdate, AutomationResponse,
+    ExecutionResponse, AutomationDraft
+)
 from app.automation.engine import AutomationEngine
+from app.automation.kill_switch import (
+    is_kill_switch_active, activate_kill_switch, deactivate_kill_switch
+)
+from app.automation.permissions import AutomationPermissionService
 
 router = APIRouter()
 
-def get_automation_repo(db: AsyncSession = Depends(get_db)) -> BaseRepository[Automation]:
-    return BaseRepository(Automation, db)
-
-def get_execution_repo(db: AsyncSession = Depends(get_db)) -> BaseRepository[AutomationExecution]:
-    return BaseRepository(AutomationExecution, db)
-
 @router.get("/", response_model=List[AutomationResponse])
-async def get_automations(skip: int = 0, limit: int = 50, repo: BaseRepository[Automation] = Depends(get_automation_repo)):
-    return await repo.get_all(skip, limit)
+async def list_automations(db: AsyncSession = Depends(get_db)):
+    query = select(Automation).options(
+        selectinload(Automation.triggers),
+        selectinload(Automation.actions)
+    ).order_by(Automation.created_at.desc())
+    res = await db.execute(query)
+    return list(res.scalars().all())
 
-from app.models.automation import AutomationTrigger, AutomationAction
+@router.get("/templates")
+async def get_templates():
+    """Retorna templates de rotinas pré-configuradas prontas para uso"""
+    return [
+        {
+            "id": "tpl_morning",
+            "name": "Rotina da Manhã",
+            "description": "Abre o ambiente de desenvolvimento, consulta tarefas e e-mails prioritários.",
+            "trigger": {"type": "SCHEDULE", "config": {"time": "08:00", "days": [0, 1, 2, 3, 4]}},
+            "actions": [
+                {"type": "OPEN_APPLICATION", "config": {"app_name": "vscode"}},
+                {"type": "SHOW_AGENT_MESSAGE", "config": {"message": "Bom dia! Suas tarefas prioritárias e e-mails estão prontos no Dashboard."}},
+                {"type": "SYNC_EMAIL", "config": {}}
+            ],
+            "risk_level": "HIGH",
+            "requires_confirmation": True
+        },
+        {
+            "id": "tpl_study",
+            "name": "Foco & Sessão de Estudos",
+            "description": "Prepara ambiente focado, bloqueia notificações e inicia Pomodoro de 25 minutos.",
+            "trigger": {"type": "MANUAL", "config": {}},
+            "actions": [
+                {"type": "CREATE_NOTIFICATION", "config": {"title": "Modo Estudo Ativado", "message": "Iniciando sessão Pomodoro focada."}},
+                {"type": "START_STUDY_SESSION", "config": {"duration_minutes": 25, "subject_id": 1}}
+            ],
+            "risk_level": "LOW",
+            "requires_confirmation": False
+        },
+        {
+            "id": "tpl_weekly",
+            "name": "Revisão Semanal",
+            "description": "Gera o resumo de tarefas concluídas, gastos da semana e horas estudadas.",
+            "trigger": {"type": "SCHEDULE", "config": {"time": "20:00", "days": [6]}},
+            "actions": [
+                {"type": "GENERATE_WEEKLY_SUMMARY", "config": {}},
+                {"type": "CREATE_NOTIFICATION", "config": {"title": "Revisão Semanal Pronta", "message": "Seu resumo da semana foi gerado pelo Resolva Agent."}}
+            ],
+            "risk_level": "LOW",
+            "requires_confirmation": False
+        }
+    ]
+
+@router.get("/kill-switch/status")
+async def get_kill_switch():
+    return {"is_active": is_kill_switch_active()}
+
+@router.post("/kill-switch/activate")
+async def trigger_kill_switch():
+    activate_kill_switch()
+    return {"status": "success", "message": "Kill Switch ativado. Todas as automações foram pausadas globalmente.", "is_active": True}
+
+@router.post("/kill-switch/deactivate")
+async def untrigger_kill_switch():
+    deactivate_kill_switch()
+    return {"status": "success", "message": "Kill Switch desativado. Automações reestabelecidas.", "is_active": False}
 
 @router.post("/", response_model=AutomationResponse, status_code=status.HTTP_201_CREATED)
-async def create_automation(auto_in: AutomationCreate, db: AsyncSession = Depends(get_db)):
-    data = auto_in.model_dump()
-    triggers_data = data.pop("triggers", [])
-    actions_data = data.pop("actions", [])
-    
-    auto = Automation(**data)
-    db.add(auto)
+async def create_automation(payload: AutomationCreate, db: AsyncSession = Depends(get_db)):
+    automation = Automation(
+        name=payload.name,
+        description=payload.description,
+        is_active=payload.is_active,
+        icon=payload.icon or "zap"
+    )
+    db.add(automation)
     await db.commit()
-    await db.refresh(auto)
-    
-    for t in triggers_data:
-        trig = AutomationTrigger(automation_id=auto.id, **t)
-        db.add(trig)
-        
-    for a in actions_data:
-        act = AutomationAction(automation_id=auto.id, **a)
-        db.add(act)
-        
+    await db.refresh(automation)
+
+    for trig in payload.triggers:
+        t = AutomationTrigger(automation_id=automation.id, type=trig.type, config=trig.config)
+        db.add(t)
+
+    for idx, act in enumerate(payload.actions):
+        a = AutomationAction(
+            automation_id=automation.id,
+            type=act.type,
+            config=act.config,
+            sort_order=act.sort_order if act.sort_order is not None else idx,
+            requires_confirmation=act.requires_confirmation
+        )
+        db.add(a)
+
     await db.commit()
-    await db.refresh(auto)
-    return auto
+
+    query = select(Automation).options(
+        selectinload(Automation.triggers),
+        selectinload(Automation.actions)
+    ).where(Automation.id == automation.id)
+    res = await db.execute(query)
+    return res.scalars().first()
 
 @router.get("/{id}", response_model=AutomationResponse)
-async def get_automation(id: int, repo: BaseRepository[Automation] = Depends(get_automation_repo)):
-    auto = await repo.get_by_id(id)
+async def get_automation(id: int, db: AsyncSession = Depends(get_db)):
+    query = select(Automation).options(
+        selectinload(Automation.triggers),
+        selectinload(Automation.actions)
+    ).where(Automation.id == id)
+    res = await db.execute(query)
+    auto = res.scalars().first()
     if not auto:
         raise HTTPException(status_code=404, detail="Automação não encontrada")
     return auto
 
 @router.put("/{id}", response_model=AutomationResponse)
-async def update_automation(id: int, auto_in: AutomationUpdate, repo: BaseRepository[Automation] = Depends(get_automation_repo)):
-    data = auto_in.model_dump(exclude_unset=True)
-    auto = await repo.update(id, **data)
+async def update_automation(id: int, payload: AutomationUpdate, db: AsyncSession = Depends(get_db)):
+    query = select(Automation).options(
+        selectinload(Automation.triggers),
+        selectinload(Automation.actions)
+    ).where(Automation.id == id)
+    res = await db.execute(query)
+    auto = res.scalars().first()
     if not auto:
         raise HTTPException(status_code=404, detail="Automação não encontrada")
+
+    if payload.name is not None: auto.name = payload.name
+    if payload.description is not None: auto.description = payload.description
+    if payload.is_active is not None: auto.is_active = payload.is_active
+    if payload.icon is not None: auto.icon = payload.icon
+
+    await db.commit()
+    await db.refresh(auto)
     return auto
 
-@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_automation(id: int, repo: BaseRepository[Automation] = Depends(get_automation_repo)):
-    success = await repo.delete(id)
-    if not success:
+@router.post("/{id}/toggle", response_model=AutomationResponse)
+async def toggle_automation(id: int, db: AsyncSession = Depends(get_db)):
+    query = select(Automation).where(Automation.id == id)
+    res = await db.execute(query)
+    auto = res.scalars().first()
+    if not auto:
         raise HTTPException(status_code=404, detail="Automação não encontrada")
-    return None
+    auto.is_active = not auto.is_active
+    await db.commit()
+    await db.refresh(auto)
+    return auto
+
+@router.delete("/{id}")
+async def delete_automation(id: int, db: AsyncSession = Depends(get_db)):
+    query = select(Automation).where(Automation.id == id)
+    res = await db.execute(query)
+    auto = res.scalars().first()
+    if not auto:
+        raise HTTPException(status_code=404, detail="Automação não encontrada")
+    await db.delete(auto)
+    await db.commit()
+    return {"status": "deleted", "id": id}
 
 @router.post("/{id}/run", response_model=ExecutionResponse)
-async def run_automation(id: int, db: AsyncSession = Depends(get_db)):
+async def run_automation(
+    id: int,
+    confirmed: bool = Query(False, description="Confirmação para ações de alto risco"),
+    db: AsyncSession = Depends(get_db)
+):
     engine = AutomationEngine(db)
-    return await engine.run_automation(id)
+    return await engine.run_automation(id, is_confirmed=confirmed)
 
 @router.get("/{id}/executions", response_model=List[ExecutionResponse])
-async def get_executions(id: int, exec_repo: BaseRepository[AutomationExecution] = Depends(get_execution_repo)):
-    all_execs = await exec_repo.get_all(0, 50)
-    return [e for e in all_execs if e.automation_id == id]
+async def get_executions(id: int, skip: int = 0, limit: int = 20, db: AsyncSession = Depends(get_db)):
+    query = select(AutomationExecution).where(AutomationExecution.automation_id == id).order_by(AutomationExecution.started_at.desc()).offset(skip).limit(limit)
+    res = await db.execute(query)
+    return list(res.scalars().all())
