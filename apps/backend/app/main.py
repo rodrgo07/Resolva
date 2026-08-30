@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.database import engine, Base
+import app.models # Garante que todos os modelos estejam importados antes do create_all
 from app.api.router import api_router
 from app.__init__ import __version__
 from app.core.exceptions import ResolvaError, NotFoundError, ValidationError, PermissionError, AutomationSecurityError

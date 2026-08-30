@@ -1,67 +1,67 @@
-# RESOLVA
+# RESOLVA ✨
 
-O **RESOLVA** é um centro de comando pessoal para desktop que reúne produtividade, tarefas, estudos, finanças, agenda, e-mails, IA orientada a ferramentas e automações locais em uma única interface.
+> Seu centro de comando pessoal para organizar tarefas, estudos, finanças, agenda, e-mails, IA e automações em um único lugar.
 
-## Visão geral
+O **RESOLVA** é um app desktop pensado para centralizar o que importa no dia a dia com uma experiência simples, prática e extensível.
 
-O projeto é dividido em dois aplicativos principais:
+## O que você encontra aqui 🚀
 
-- `apps/desktop`: interface desktop em React + Tauri
-- `apps/backend`: API assíncrona em FastAPI com persistência em SQLite
+- 🖥️ Interface desktop com **React + Tauri**
+- ⚙️ Backend assíncrono com **FastAPI**
+- 🗄️ Persistência local com **SQLite**
+- 🤖 Camada de IA com provedores `Mock`, `OpenAI` e `Local`
+- 🔁 Automações com scheduler, templates e segurança reforçada
 
-Além do fluxo principal de organização pessoal, o RESOLVA já inclui um módulo de automações com rotinas agendadas, templates prontos, kill switch global e validações de segurança.
+## Destaques 🌟
 
-## Stack
+- 📊 Dashboard com visão consolidada do dia
+- ✅ Gestão de tarefas, estudos, finanças, e-mails, calendário e atividade
+- 🧠 Assistente de IA com ferramentas controladas por permissões
+- ⏰ Automações manuais e agendadas
+- 🛑 Kill switch global para pausar rotinas com segurança
+- 🎯 Painel desktop com atalhos e navegação lateral
+
+## Stack técnica 🛠️
 
 - Desktop shell: Tauri v2 com Rust
 - Frontend: React 19, TypeScript, Vite, Tailwind CSS v4, Zustand, React Router, Lucide React, Recharts
 - Backend: Python 3.11+, FastAPI, SQLAlchemy 2.0, Alembic, Pydantic v2
 - Banco de dados: SQLite com `aiosqlite`
-- IA: camada de orquestração com provedores `Mock`, `OpenAI` e `Local`
 - Integrações: e-mail, notificações, calendário, tarefas, estudos e finanças
 
-## Funcionalidades
-
-- Dashboard com visão consolidada do dia
-- Gestão de tarefas, estudos, finanças, e-mails, calendário e atividade
-- Assistente de IA com ferramentas controladas por permissões
-- Automações com templates, scheduler persistente e auditoria
-- Kill switch global para pausar rotinas em execução
-- Painel desktop com atalhos e navegação lateral
-
-## Começando
+## Como começar 📦
 
 ### Pré-requisitos
 
 - Node.js 18 ou superior
 - Python 3.11 ou superior
-- Rust e Cargo, para o build do Tauri
+- Rust e Cargo, para build do Tauri
 
-### 1. Instalação inicial
+### 1) Instalação inicial
 
-Execute o script de setup para criar o ambiente virtual, instalar dependências e gerar o arquivo `.env` a partir do exemplo:
+Rode o setup para criar o ambiente virtual, instalar dependências e gerar o `.env`:
 
 ```powershell
 .\scripts\setup.ps1
 ```
 
-### 2. Desenvolvimento
+### 2) Rodar em desenvolvimento
 
-Inicie backend e frontend ao mesmo tempo:
+Suba backend e frontend juntos:
 
 ```powershell
 .\scripts\dev.ps1
 ```
 
-Durante a execução, os serviços ficam disponíveis em:
+Durante a execução:
 
 - Frontend: http://localhost:1420
 - Backend API: http://127.0.0.1:8700
 - Swagger/OpenAPI: http://127.0.0.1:8700/docs
 
-## Variáveis de ambiente
+## Variáveis de ambiente 🔐
 
-O arquivo `.env.example` documenta as principais variáveis do projeto. As mais importantes são:
+O arquivo `.env.example` mostra as principais variáveis do projeto. As mais importantes são:
 
 - `BACKEND_HOST` e `BACKEND_PORT`
 - `DATABASE_URL`
@@ -70,7 +70,7 @@ O arquivo `.env.example` documenta as principais variáveis do projeto. As mais 
 - `ALLOWED_ORIGINS`
 - credenciais opcionais para Gmail e Outlook
 
-## Testes
+## Testes 🧪
 
 ### Backend
 
@@ -86,7 +86,7 @@ cd apps/desktop
 npm run build
 ```
 
-## Automações
+## Automações 🔁
 
 O módulo de automações suporta:
 
@@ -96,9 +96,9 @@ O módulo de automações suporta:
 - confirmação obrigatória para fluxos de maior risco
 - kill switch global para suspensão imediata
 
-Consulte `docs/automations.md` para a visão técnica do módulo.
+Veja a documentação técnica em [`docs/automations.md`](docs/automations.md).
 
-## Estrutura do repositório
+## Estrutura do repositório 🗂️
 
 ```text
 resolva/
@@ -111,7 +111,7 @@ resolva/
 └── README.md
 ```
 
-## Documentação útil
+## Documentação útil 📚
 
-- `docs/automations.md`
-- `apps/desktop/README.md`
+- [`docs/automations.md`](docs/automations.md)
+- [`apps/desktop/README.md`](apps/desktop/README.md)
