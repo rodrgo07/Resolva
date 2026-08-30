@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { getGreeting, formatCurrency } from "@/lib/utils";
 import { useAppStore } from "@/stores/app-store";
 import { api } from "@/lib/api-client";
@@ -12,8 +12,9 @@ import {
   Sparkles,
   CalendarDays,
   Flame,
-  ArrowRight,
+  ArrowRight
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface TasksSummary {
   total: number;
@@ -122,19 +123,29 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Greeting Header */}
+      {/* Greeting Header & Agent Callout */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-surface-800/40 pb-6">
         <div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight">
             {greeting}, <span className="text-accent-400">{userName}</span>.
           </h1>
           <p className="text-surface-400 mt-1 text-sm">
-            Aqui está o que merece sua atenção hoje.
+            Aqui está o panorama completo da sua rotina hoje.
           </p>
         </div>
-        <div className="flex items-center gap-2 text-xs font-medium text-surface-400 glass px-3 py-1.5 rounded-lg border border-surface-700/50 self-start sm:self-auto">
-          <CalendarDays className="w-4 h-4 text-accent-400" />
-          <span>{new Intl.DateTimeFormat("pt-BR", { dateStyle: "full" }).format(new Date())}</span>
+        <div className="flex items-center gap-3">
+          <Button
+            size="sm"
+            onClick={() => setCurrentPage("ai")}
+            className="gap-2 bg-accent-600 hover:bg-accent-500 shadow-md shadow-accent-600/20 text-xs font-bold"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            Organizar Meu Dia com Agent
+          </Button>
+          <div className="flex items-center gap-2 text-xs font-medium text-surface-400 glass px-3 py-1.5 rounded-lg border border-surface-700/50 hidden md:flex">
+            <CalendarDays className="w-4 h-4 text-accent-400" />
+            <span>{new Intl.DateTimeFormat("pt-BR", { dateStyle: "full" }).format(new Date())}</span>
+          </div>
         </div>
       </div>
 
@@ -175,7 +186,7 @@ export function DashboardPage() {
 
         <SummaryCard
           icon={Mail}
-          title="Emails"
+          title="Emails (Gmail + Outlook)"
           color="bg-orange-500/10 text-orange-400"
           onClick={() => setCurrentPage("emails")}
         >
