@@ -1,4 +1,4 @@
-﻿import * as React from "react"
+import * as React from "react"
 import { useEffect, Suspense, lazy } from "react"
 import { Sidebar } from "./sidebar"
 import { Topbar } from "./topbar"
@@ -68,7 +68,9 @@ export function AppLayout() {
 
         unlistenTray = await listen<string>("tray-action", async (event) => {
           const action = event.payload
-          if (action === "organize_my_day") {
+          if (action === "open_notifications") {
+            setCurrentPage("notifications")
+          } else if (action === "organize_my_day") {
             setCurrentPage("ai")
           } else if (action === "open_settings") {
             setCurrentPage("settings")

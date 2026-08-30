@@ -1,12 +1,14 @@
-﻿import { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { Modal } from "@/components/ui/modal"
 import { 
   Search, CheckSquare, Wallet, CalendarDays, ArrowRight, Bot, Sparkles, 
-  Mail, ShieldCheck, RefreshCw, Zap, Clock, ChevronRight
+  Mail, ShieldCheck, RefreshCw, Zap, Clock, ChevronRight, Bell, CheckCheck,
+  AlertTriangle
 } from "lucide-react"
 import { useAppStore } from "@/stores/app-store"
 import { api } from "@/lib/api-client"
 import { useToast } from "@/components/ui/toast"
+import { useNotificationStore } from "@/stores/notification-store"
 
 interface SearchItem {
   id: number
@@ -22,6 +24,7 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean, onClose: 
   const [isLoading, setIsLoading] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(0)
   const { setCurrentPage, setActiveQuickModal } = useAppStore()
+  const { markAllAsRead, fetchSummary } = useNotificationStore()
   const { toast } = useToast()
 
   const quickCommands = [
@@ -29,10 +32,21 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean, onClose: 
     { id: "new-expense", title: "Adicionar gasto", category: "Finanças", icon: Wallet, color: "text-green-400", action: () => { onClose(); setActiveQuickModal("expense"); } },
     { id: "new-event", title: "Adicionar compromisso", category: "Agenda", icon: CalendarDays, color: "text-purple-400", action: () => { onClose(); setActiveQuickModal("event"); } },
     { id: "pomodoro", title: "Iniciar Pomodoro", category: "Estudos", icon: Clock, color: "text-blue-400", action: () => { onClose(); setActiveQuickModal("pomodoro"); } },
+    
+    // Notificações Inteligentes
+    { id: "notifs", title: "Ver todas as notificações", category: "Notificações", icon: Bell, color: "text-accent-400", action: () => { onClose(); setCurrentPage("notifications"); } },
+    { id: "notifs-read-all", title: "Marcar todas as notificações como lidas", category: "Notificações", icon: CheckCheck, color: "text-emerald-400", action: async () => { onClose(); try { await api.post("/api/notifications/read-all", {}); markAllAsRead(); fetchSummary(); toast({ title: "Notificações limpas", type: "success" }); } catch {} } },
+    { id: "notifs-urgent", title: "Ver notificações urgentes", category: "Notificações", icon: AlertTriangle, color: "text-red-400", action: () => { onClose(); setCurrentPage("notifications"); } },
+    
+    // Planejamento & Agent
     { id: "organize", title: "Organizar meu dia (Planner)", category: "Agent", icon: Sparkles, color: "text-yellow-400", action: () => { onClose(); setCurrentPage("ai"); } },
     { id: "agent", title: "Abrir Agent", category: "Agent", icon: Bot, color: "text-accent-400", action: () => { onClose(); setCurrentPage("ai"); } },
+    
+    // Módulos
     { id: "tasks", title: "Ver pendências / tarefas atrasadas", category: "Tarefas", icon: CheckSquare, color: "text-emerald-400", action: () => { onClose(); setCurrentPage("tasks"); } },
     { id: "emails", title: "Ver e-mails importantes", category: "E-mails", icon: Mail, color: "text-orange-400", action: () => { onClose(); setCurrentPage("emails"); } },
+    
+    // Sistema
     { id: "sync", title: "Sincronizar agora", category: "Sistema", icon: RefreshCw, color: "text-cyan-400", action: async () => { onClose(); toast({ title: "Sincronizando...", description: "Verificando dados locais e remotos.", type: "info" }); try { await api.post("/api/sync/trigger"); toast({ title: "Sincronizado", description: "Sincronização concluída com sucesso.", type: "success" }); } catch {} } },
     { id: "backup", title: "Criar backup", category: "Sistema", icon: ShieldCheck, color: "text-indigo-400", action: async () => { onClose(); toast({ title: "Criando backup...", description: "Criptografando banco de dados SQLite.", type: "info" }); try { await api.post("/api/backups", { backup_type: "manual", encrypt: true }); toast({ title: "Backup Criado", description: "Cópia segura gerada com sucesso.", type: "success" }); } catch {} } },
     { id: "automations", title: "Executar rotina / automações", category: "Automações", icon: Zap, color: "text-amber-400", action: () => { onClose(); setCurrentPage("automations"); } },
@@ -91,6 +105,7 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean, onClose: 
     else if (item.url === "/calendar") setCurrentPage("calendar")
     else if (item.url === "/emails") setCurrentPage("emails")
     else if (item.url === "/ai") setCurrentPage("ai")
+    else if (item.url === "/notifications") setCurrentPage("notifications")
   }
 
   const groupedCategories = Array.from(new Set(filteredCommands.map(c => c.category)));
@@ -103,7 +118,7 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean, onClose: 
           <input 
             autoFocus
             className="flex-1 bg-transparent border-none outline-none text-white placeholder-surface-400 text-sm font-medium"
-            placeholder="O que você quer resolver? (ex: Criar tarefa, Adicionar gasto, Iniciar Pomodoro...)"
+            placeholder="O que você quer resolver? (ex: Ver notificações, Criar tarefa, Organizar meu dia...)"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);

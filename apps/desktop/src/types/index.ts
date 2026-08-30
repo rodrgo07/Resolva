@@ -1,7 +1,11 @@
 // Notification types
+export type NotificationType = 
+  | "INFO" | "REMINDER" | "TASK_OVERDUE" | "EMAIL_IMPORTANT" | "EMAIL_URGENT" 
+  | "CALENDAR_UPCOMING" | "STUDY_REMINDER" | "FINANCE_ALERT" | "SYNC_STATUS" 
+  | "AUTOMATION_RESULT" | "SYSTEM" | "AGENT_RECOMMENDATION"
+  | "task" | "study" | "finance" | "email" | "automation" | "system" | "ai";
 
-export type NotificationType = "task" | "study" | "finance" | "email" | "automation" | "system" | "ai";
-export type NotificationPriority = "low" | "normal" | "high";
+export type NotificationPriority = "LOW" | "NORMAL" | "IMPORTANT" | "URGENT" | "CRITICAL" | "low" | "normal" | "high";
 
 export interface Notification {
   id: number;
@@ -9,10 +13,27 @@ export interface Notification {
   title: string;
   message: string;
   priority: NotificationPriority;
+  source?: string;
+  source_id?: string | null;
   is_read: boolean;
-  action_data: Record<string, unknown> | null;
+  read_at?: string | null;
+  dismissed_at?: string | null;
+  scheduled_for?: string | null;
+  expires_at?: string | null;
+  action_type?: string | null;
+  action_payload?: Record<string, unknown> | null;
+  action_data?: Record<string, unknown> | null;
+  requires_confirmation?: boolean;
+  status?: string;
   created_at: string;
-  read_at: string | null;
+}
+
+export interface NotificationSummary {
+  unread_count: number;
+  total_count: number;
+  urgent_count: number;
+  important_count: number;
+  by_source: Record<string, number>;
 }
 
 // Activity types

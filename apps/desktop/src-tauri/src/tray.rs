@@ -6,6 +6,7 @@
 
 pub fn setup_system_tray(app: &AppHandle) -> Result<TrayIcon, Box<dyn std::error::Error>> {
     let open_i = MenuItem::with_id(app, "tray_open", "Abrir RESOLVA", true, None::<&str>)?;
+    let notifs_i = MenuItem::with_id(app, "tray_notifs", "Notificações", true, None::<&str>)?;
     let palette_i = MenuItem::with_id(app, "tray_palette", "Command Palette (Ctrl+Space)", true, None::<&str>)?;
     let task_i = MenuItem::with_id(app, "tray_task", "Nova Tarefa (Ctrl+Shift+T)", true, None::<&str>)?;
     let organize_i = MenuItem::with_id(app, "tray_organize", "Organizar meu dia", true, None::<&str>)?;
@@ -26,6 +27,7 @@ pub fn setup_system_tray(app: &AppHandle) -> Result<TrayIcon, Box<dyn std::error
         app,
         &[
             &open_i,
+            &notifs_i,
             &palette_i,
             &task_i,
             &organize_i,
@@ -57,6 +59,14 @@ pub fn setup_system_tray(app: &AppHandle) -> Result<TrayIcon, Box<dyn std::error
                         let _ = window.unminimize();
                         let _ = window.set_focus();
                     }
+                }
+                "tray_notifs" => {
+                    if let Some(window) = app.get_webview_window("main") {
+                        let _ = window.show();
+                        let _ = window.unminimize();
+                        let _ = window.set_focus();
+                    }
+                    let _ = app.emit("tray-action", "open_notifications");
                 }
                 "tray_palette" => {
                     if let Some(window) = app.get_webview_window("main") {

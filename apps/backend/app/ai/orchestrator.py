@@ -22,6 +22,10 @@ from app.ai.tools.agent_tools import (
     GetSystemStatusTool, OpenAllowedApplicationTool, ShowNotificationTool,
     FocusResolvaTool, OpenCommandPaletteTool
 )
+from app.ai.tools.notification_tools import (
+    GetNotificationsTool, GetNotificationSummaryTool, MarkNotificationReadTool,
+    DismissNotificationTool, CreateNotificationTool, GetNotificationPreferencesTool
+)
 from app.ai.permissions import check_permission
 from app.ai.memory import AgentMemoryManager
 from app.models.ai import AIConversation, AIMessage
@@ -68,7 +72,15 @@ def get_default_tools() -> List[BaseTool]:
         OpenAllowedApplicationTool(),
         ShowNotificationTool(),
         FocusResolvaTool(),
-        OpenCommandPaletteTool()
+        OpenCommandPaletteTool(),
+
+        # Intelligent Notifications & Proactive Tools (Fase 27)
+        GetNotificationsTool(),
+        GetNotificationSummaryTool(),
+        MarkNotificationReadTool(),
+        DismissNotificationTool(),
+        CreateNotificationTool(),
+        GetNotificationPreferencesTool()
     ]
 
 class ResolvaAgent:
