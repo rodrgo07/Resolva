@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Optional
+﻿from typing import List, Dict, Any, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.ai.providers.mock_provider import MockAIProvider
@@ -8,6 +8,10 @@ from app.ai.tools.base import BaseTool
 from app.ai.tools.task_tools import ListTasksTool, CreateTaskTool
 from app.ai.tools.finance_tools import GetFinanceSummaryTool, CreateExpenseTool
 from app.ai.tools.study_tools import GetStudySummaryTool
+from app.ai.tools.email_tools import (
+    ListImportantEmailsTool, SearchEmailsTool, GetUnreadEmailsTool,
+    GetEmailSummaryTool, ArchiveEmailTool
+)
 from app.ai.permissions import check_permission
 from app.models.ai import AIConversation, AIMessage
 from app.schemas.ai import ChatResponse
@@ -20,7 +24,12 @@ def get_default_tools() -> List[BaseTool]:
         CreateTaskTool(),
         GetFinanceSummaryTool(),
         CreateExpenseTool(),
-        GetStudySummaryTool()
+        GetStudySummaryTool(),
+        ListImportantEmailsTool(),
+        SearchEmailsTool(),
+        GetUnreadEmailsTool(),
+        GetEmailSummaryTool(),
+        ArchiveEmailTool()
     ]
 
 class AIOrchestrator:

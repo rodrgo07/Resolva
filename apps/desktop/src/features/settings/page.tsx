@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { 
-  Moon, Database, Save, Laptop, Sparkles, Check
+  Moon, Database, Save, Laptop, Sparkles, Check, Mail, ExternalLink, RefreshCw, Unlink
 } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
@@ -15,9 +15,21 @@ interface AppSetting {
   type: string;
 }
 
+interface EmailAccount {
+  id: number;
+  provider: string;
+  email_address: string;
+  is_active: boolean;
+  last_synced_at: string | null;
+  sync_status: string;
+  sync_error: string | null;
+}
+
 export function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [emailAccounts, setEmailAccounts] = useState<EmailAccount[]>([]);
+  const [isSyncingEmail, setIsSyncingEmail] = useState(false);
 
   // Form local state
   const [theme, setTheme] = useState("dark");
@@ -25,21 +37,30 @@ export function SettingsPage() {
   const [aiApiKey, setAiApiKey] = useState("");
   const [aiModel, setAiModel] = useState("gpt-4o-mini");
   const [userName, setUserName] = useState("Rodrigo");
-  const [activeTab, setActiveTab] = useState<"general" | "ai" | "system">("general");
+  const [activeTab, setActiveTab] = useState<"general" | "ai" | "integrations" | "system">("general");
 
   const { toast } = useToast();
 
   const loadSettings = async () => {
     try {
       setIsLoading(true);
-      const data = await api.get<AppSetting[]>("/api/settings/");
+      const [settingsData, accountsData] = await Promise.allSettled([
+        api.get<AppSetting[]>("/api/settings/"),
+        api.get<EmailAccount[]>("/api/emails/accounts")
+      ]);
 
-      data?.forEach((s) => {
-        if (s.key === "theme") setTheme(s.value);
-        if (s.key === "ai_provider") setAiProvider(s.value);
-        if (s.key === "ai_model") setAiModel(s.value);
-        if (s.key === "user_name") setUserName(s.value);
-      });
+      if (settingsData.status === "fulfilled" && settingsData.value) {
+        settingsData.value.forEach((s) => {
+          if (s.key === "theme") setTheme(s.value);
+          if (s.key === "ai_provider") setAiProvider(s.value);
+          if (s.key === "ai_model") setAiModel(s.value);
+          if (s.key === "user_name") setUserName(s.value);
+        });
+      }
+
+      if (accountsData.status === "fulfilled" && accountsData.value) {
+        setEmailAccounts(accountsData.value);
+      }
     } catch {
       toast({ title: "Erro ao carregar configurações", type: "error" });
     } finally {
@@ -50,6 +71,49 @@ export function SettingsPage() {
   useEffect(() => {
     loadSettings();
   }, []);
+
+  const handleConnectGmail = async () => {
+    try {
+      const res = await api.post<{ authorization_url: string; state: string }>("/api/emails/connect/gmail/init");
+      if (res?.authorization_url) {
+        window.open(res.authorization_url, "_blank");
+        toast({ title: "Navegador aberto para autenticação Google OAuth", type: "info" });
+      }
+    } catch {
+      // Mock account fallback
+      try {
+        await api.post("/api/emails/connect/mock");
+        toast({ title: "Conta de demonstração conectada", type: "success" });
+        await loadSettings();
+      } catch {
+        toast({ title: "Erro ao iniciar conexão com Gmail", type: "error" });
+      }
+    }
+  };
+
+  const handleSyncNow = async () => {
+    setIsSyncingEmail(true);
+    try {
+      await api.post("/api/emails/sync");
+      toast({ title: "Emails sincronizados com sucesso!", type: "success" });
+      await loadSettings();
+    } catch {
+      toast({ title: "Erro ao sincronizar", type: "error" });
+    } finally {
+      setIsSyncingEmail(false);
+    }
+  };
+
+  const handleDisconnectEmail = async (id: number) => {
+    if (!confirm("Deseja realmente desconectar esta conta?")) return;
+    try {
+      await api.delete(`/api/emails/accounts/${id}`);
+      toast({ title: "Conta desconectada com sucesso", type: "success" });
+      await loadSettings();
+    } catch {
+      toast({ title: "Erro ao desconectar conta", type: "error" });
+    }
+  };
 
   const handleSaveSetting = async (key: string, value: string) => {
     try {
@@ -84,15 +148,16 @@ export function SettingsPage() {
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight">Configurações</h1>
           <p className="text-sm text-surface-400">
-            Personalize temas, inteligência artificial, dados e preferências do Resolva.
+            Personalize temas, integrações de e-mail, inteligência artificial e sistema.
           </p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-surface-800/60 pb-3">
+      <div className="flex items-center gap-2 border-b border-surface-800/60 pb-3 overflow-x-auto">
         {[
           { key: "general", label: "Geral & Perfil", icon: Laptop },
+          { key: "integrations", label: "Integrações & E-mail", icon: Mail },
           { key: "ai", label: "Inteligência Artificial", icon: Sparkles },
           { key: "system", label: "Banco de Dados & Sistema", icon: Database },
         ].map((tab) => {
@@ -101,7 +166,7 @@ export function SettingsPage() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key as any)}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === tab.key
                   ? "bg-accent-500/20 text-accent-400 border border-accent-500/30 font-semibold"
                   : "text-surface-400 hover:text-surface-200 hover:bg-surface-800/60"
@@ -184,6 +249,90 @@ export function SettingsPage() {
             </div>
           )}
 
+          {activeTab === "integrations" && (
+            <div className="glass-card p-5 space-y-5">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Mail className="w-4 h-4 text-accent-400" />
+                Integrações de E-mail
+              </h3>
+
+              {/* Gmail Card */}
+              <div className="border border-surface-800 rounded-xl p-4 bg-surface-900/40 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center font-bold text-red-400">
+                      G
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white">Google Gmail</h4>
+                      <p className="text-xs text-surface-400">Autenticação OAuth 2.0 segura com triagem local por IA</p>
+                    </div>
+                  </div>
+                  {emailAccounts.length > 0 ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Conectado
+                    </span>
+                  ) : (
+                    <Button type="button" onClick={handleConnectGmail} size="sm" className="gap-1.5">
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Conectar Gmail
+                    </Button>
+                  )}
+                </div>
+
+                {emailAccounts.map(acc => (
+                  <div key={acc.id} className="pt-3 border-t border-surface-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-surface-300">
+                    <div>
+                      <p className="font-semibold text-white">{acc.email_address}</p>
+                      <p className="text-surface-500 text-[11px]">
+                        Última sincronização: {acc.last_synced_at ? new Date(acc.last_synced_at).toLocaleString("pt-BR") : "Nunca"}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        isLoading={isSyncingEmail}
+                        onClick={handleSyncNow}
+                        className="gap-1 text-xs border-surface-700 hover:text-white"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        Sincronizar Agora
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDisconnectEmail(acc.id)}
+                        className="text-red-400 hover:bg-red-500/10 text-xs"
+                      >
+                        <Unlink className="w-3.5 h-3.5 mr-1" />
+                        Desconectar
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Outlook Card (Próxima Fase) */}
+              <div className="border border-surface-800 rounded-xl p-4 bg-surface-900/20 opacity-60 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center font-bold text-blue-400">
+                    O
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-surface-300">Microsoft Outlook / 365</h4>
+                    <p className="text-xs text-surface-500">Arquitetura preparada para integração na próxima fase</p>
+                  </div>
+                </div>
+                <span className="text-[11px] font-medium bg-surface-800 text-surface-400 px-2.5 py-1 rounded-md border border-surface-700">
+                  Em Breve
+                </span>
+              </div>
+            </div>
+          )}
+
           {activeTab === "ai" && (
             <div className="glass-card p-5 space-y-4">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -247,13 +396,16 @@ export function SettingsPage() {
 
               <div className="space-y-2 text-xs text-surface-400">
                 <p>
-                  <strong>Banco de dados:</strong> SQLite assíncrono localizado em <code className="text-accent-400">./resolva.db</code>
+                  <strong>Banco de dados:</strong> SQLite assíncrono com WAL mode ativo em <code className="text-accent-400">./resolva.db</code>
                 </p>
                 <p>
-                  <strong>Backend:</strong> FastAPI rodando em <code className="text-accent-400">http://127.0.0.1:8000</code>
+                  <strong>Cofre de Tokens:</strong> Windows DPAPI / Vault isolado no AppData (tokens OAuth nunca em texto puro no SQLite).
                 </p>
                 <p>
-                  <strong>Segurança:</strong> Execução de comandos protegida por whitelist e validação rigorosa de parâmetros.
+                  <strong>Backend:</strong> FastAPI assíncrono rodando em <code className="text-accent-400">http://127.0.0.1:8700</code>
+                </p>
+                <p>
+                  <strong>Segurança:</strong> Sanitização estrita de HTML de e-mails, validação por whitelist e confirmação para ações de escrita.
                 </p>
               </div>
             </div>

@@ -1,10 +1,9 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import List
+﻿from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import List, Optional
 from pathlib import Path
+import os
 
 _ENV_FILE = Path(__file__).resolve().parent.parent.parent.parent / ".env"
-
-import os
 
 def _get_database_url() -> str:
     appdata = os.environ.get("APPDATA")
@@ -12,7 +11,6 @@ def _get_database_url() -> str:
         resolva_dir = Path(appdata) / "Resolva"
         resolva_dir.mkdir(parents=True, exist_ok=True)
         db_path = resolva_dir / "resolva.db"
-        # If running in local dev and local db exists, prefer local unless specified
         local_db = Path("resolva.db")
         if local_db.exists():
             return f"sqlite+aiosqlite:///{local_db.absolute().as_posix()}"
@@ -35,6 +33,14 @@ class Settings(BaseSettings):
     
     LOG_LEVEL: str = "INFO"
     LOG_FILE: str = "resolva.log"
+
+    # Google OAuth 2.0 Credentials
+    GMAIL_CLIENT_ID: Optional[str] = None
+    GMAIL_CLIENT_SECRET: Optional[str] = None
+
+    # Microsoft / Outlook OAuth (future)
+    OUTLOOK_CLIENT_ID: Optional[str] = None
+    OUTLOOK_CLIENT_SECRET: Optional[str] = None
 
     @property
     def allowed_origins_list(self) -> List[str]:
