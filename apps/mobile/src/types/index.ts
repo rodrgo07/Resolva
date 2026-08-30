@@ -31,6 +31,37 @@ export interface SyncOperationItem {
   status?: "PENDING" | "APPLIED" | "CONFLICT"
 }
 
+export interface RemoteCommandPayload {
+  command_type: string
+  parameters?: Record<string, any>
+}
+
+export interface RemotePendingAction {
+  action_id: string
+  request_id: string
+  device_id: string
+  command_type: string
+  description: string
+  risk_level: string
+  status: string
+  expires_at: string
+}
+
+export interface DesktopStatus {
+  desktop_online: boolean
+  app_version: string
+  backend_status: string
+  database_status: string
+  sync_status: string
+  pending_sync: number
+  automations_status: string
+  kill_switch_active: boolean
+  notification_count: number
+  tasks_count: number
+  events_count: number
+  last_seen: string
+}
+
 export interface MobileDashboardData {
   tasksCount: number
   eventsCount: number
@@ -38,11 +69,5 @@ export interface MobileDashboardData {
   unreadEmailsCount: number
   recentTasks: Array<{ id: number; title: string; priority: string; status: string; due_date?: string }>
   upcomingEvents: Array<{ id: number; title: string; start_time: string; end_time?: string }>
-  desktopStatus: {
-    status: string
-    version: string
-    backend: string
-    agent: string
-    automations: string
-  }
+  desktopStatus: DesktopStatus
 }

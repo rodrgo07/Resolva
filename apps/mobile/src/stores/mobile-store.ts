@@ -1,5 +1,8 @@
 ﻿import { create } from "zustand"
-import { ConnectivityState, DeviceInfo, MobileDashboardData, SyncOperationItem } from "../types"
+import { 
+  ConnectivityState, DeviceInfo, MobileDashboardData, SyncOperationItem,
+  DesktopStatus, RemotePendingAction
+} from "../types"
 
 interface MobileState {
   connectivity: ConnectivityState
@@ -7,6 +10,8 @@ interface MobileState {
   serverEndpoint: string
   sessionToken: string | null
   dashboard: MobileDashboardData | null
+  desktopStatus: DesktopStatus | null
+  pendingActions: RemotePendingAction[]
   offlineQueue: SyncOperationItem[]
   isSyncing: boolean
 
@@ -15,6 +20,8 @@ interface MobileState {
   setServerEndpoint: (url: string) => void
   setSessionToken: (token: string | null) => void
   setDashboard: (data: MobileDashboardData) => void
+  setDesktopStatus: (status: DesktopStatus) => void
+  setPendingActions: (actions: RemotePendingAction[]) => void
   enqueueOfflineOperation: (op: Omit<SyncOperationItem, "operation_id" | "device_id" | "version">) => void
   clearProcessedQueue: (operationIds: string[]) => void
   setDeviceInfo: (info: Partial<DeviceInfo>) => void
@@ -33,12 +40,16 @@ export const useMobileStore = create<MobileState>((set, get) => ({
     isPaired: false,
   },
   dashboard: null,
+  desktopStatus: null,
+  pendingActions: [],
   offlineQueue: [],
 
   setConnectivity: (connectivity) => set({ connectivity }),
   setServerEndpoint: (serverEndpoint) => set({ serverEndpoint }),
   setSessionToken: (sessionToken) => set({ sessionToken }),
   setDashboard: (dashboard) => set({ dashboard }),
+  setDesktopStatus: (desktopStatus) => set({ desktopStatus }),
+  setPendingActions: (pendingActions) => set({ pendingActions }),
   setDeviceInfo: (info) => set((state) => ({ deviceInfo: { ...state.deviceInfo, ...info } })),
 
   enqueueOfflineOperation: (op) => {

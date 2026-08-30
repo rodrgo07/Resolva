@@ -20,6 +20,14 @@ class DeviceStatus(str, enum.Enum):
     PENDING_PAIR = "PENDING_PAIR"
     OFFLINE = "OFFLINE"
 
+class RemoteActionStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    CONFIRMED = "CONFIRMED"
+    REJECTED = "REJECTED"
+    EXPIRED = "EXPIRED"
+    EXECUTED = "EXECUTED"
+    FAILED = "FAILED"
+
 class Device(BaseModel):
     __tablename__ = "devices"
 
@@ -36,6 +44,7 @@ class Device(BaseModel):
     client_metadata: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, default=dict)
 
     sessions: Mapped[list["DeviceSession"]] = relationship(back_populates="device", cascade="all, delete-orphan")
+    push_tokens: Mapped[list["PushDeviceToken"]] = relationship(back_populates="device", cascade="all, delete-orphan")
 
 class DeviceSession(BaseModel):
     __tablename__ = "device_sessions"
@@ -72,3 +81,41 @@ class SyncOperation(BaseModel):
     version: Mapped[int] = mapped_column(Integer, default=1)
     status: Mapped[str] = mapped_column(String(50), default="APPLIED", index=True) # APPLIED, CONFLICT, REJECTED
     applied_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+
+class RemoteCommandRecord(BaseModel):
+    __tablename__ = "remote_commands"
+
+    request_id: Mapped[str] = mapped_column(String(100), unique=True, index=True)
+    device_id: Mapped[str] = mapped_column(String(100), index=True)
+    command_type: Mapped[str] = mapped_column(String(100), index=True)
+    parameters: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, default=dict)
+    permission_level: Mapped[str] = mapped_column(String(50), default="READ")
+    risk_level: Mapped[str] = mapped_column(String(50), default="LOW")
+    status: Mapped[str] = mapped_column(String(50), default="EXECUTED", index=True)
+    result_data: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, default=dict)
+    executed_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+
+class RemotePendingAction(BaseModel):
+    __tablename__ = "remote_pending_actions"
+
+    action_id: Mapped[str] = mapped_column(String(100), unique=True, index=True)
+    request_id: Mapped[str] = mapped_column(String(100), index=True)
+    device_id: Mapped[str] = mapped_column(String(100), index=True)
+    command_type: Mapped[str] = mapped_column(String(100), index=True)
+    parameters: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, default=dict)
+    risk_level: Mapped[str] = mapped_column(String(50), default="MEDIUM")
+    status: Mapped[RemoteActionStatus] = mapped_column(SQLEnum(RemoteActionStatus), default=RemoteActionStatus.PENDING, index=True)
+    description: Mapped[str] = mapped_column(String(500))
+    expires_at: Mapped[datetime] = mapped_column(DateTime, index=True)
+    confirmed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+class PushDeviceToken(BaseModel):
+    __tablename__ = "push_device_tokens"
+
+    device_id: Mapped[int] = mapped_column(ForeignKey("devices.id", ondelete="CASCADE"), index=True)
+    platform: Mapped[str] = mapped_column(String(50), default="ANDROID")
+    push_token: Mapped[str] = mapped_column(String(500), unique=True, index=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    last_registered_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    device: Mapped["Device"] = relationship(back_populates="push_tokens")
