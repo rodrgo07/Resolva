@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { 
   Moon, Database, Save, Laptop, Sparkles, Check, Mail, ExternalLink, RefreshCw, Unlink,
-  ShieldCheck, ArrowDownCircle, Trash2, RotateCcw, Wifi, WifiOff, Cloud
+  ShieldCheck, ArrowDownCircle, Trash2, RotateCcw, Wifi, WifiOff, Cloud,
+  Keyboard, Bell, Power
 } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
@@ -70,7 +71,29 @@ export function SettingsPage() {
   const [aiApiKey, setAiApiKey] = useState("");
   const [aiModel, setAiModel] = useState("gpt-4o-mini");
   const [userName, setUserName] = useState("Rodrigo");
-  const [activeTab, setActiveTab] = useState<"general" | "integrations" | "ai" | "sync" | "system">("general");
+
+  // Fase 26: Windows Integration & Global Hotkeys
+  const [startupEnabled, setStartupEnabled] = useState(false);
+  const [startupMinimized, setStartupMinimized] = useState(false);
+  const [startupTray, setStartupTray] = useState(false);
+  const [closeBehavior, setCloseBehavior] = useState("minimize_to_tray");
+  const [nativeNotifications, setNativeNotifications] = useState(true);
+
+  // Global Hotkeys
+  const [hkPalette, setHkPalette] = useState("Ctrl+Space");
+  const [hkTask, setHkTask] = useState("Ctrl+Shift+T");
+  const [hkAgent, setHkAgent] = useState("Ctrl+Shift+A");
+  const [hkPomodoro, setHkPomodoro] = useState("Ctrl+Shift+P");
+
+  // Notification categories
+  const [notifTasks, setNotifTasks] = useState(true);
+  const [notifCalendar, setNotifCalendar] = useState(true);
+  const [notifEmails, setNotifEmails] = useState(true);
+  const [notifStudies, setNotifStudies] = useState(true);
+  const [notifFinances, setNotifFinances] = useState(true);
+  const [notifAutomations, setNotifAutomations] = useState(true);
+
+  const [activeTab, setActiveTab] = useState<"general" | "windows" | "integrations" | "ai" | "sync" | "system">("general");
 
   const { toast } = useToast();
 
@@ -90,6 +113,25 @@ export function SettingsPage() {
           if (s.key === "ai_provider") setAiProvider(s.value);
           if (s.key === "ai_model") setAiModel(s.value);
           if (s.key === "user_name") setUserName(s.value);
+
+          // Windows & Hotkeys settings
+          if (s.key === "windows.startup_enabled") setStartupEnabled(s.value === "true");
+          if (s.key === "windows.startup_minimized") setStartupMinimized(s.value === "true");
+          if (s.key === "windows.startup_tray") setStartupTray(s.value === "true");
+          if (s.key === "windows.close_behavior") setCloseBehavior(s.value);
+          if (s.key === "windows.notifications_enabled") setNativeNotifications(s.value === "true");
+
+          if (s.key === "hotkeys.command_palette") setHkPalette(s.value);
+          if (s.key === "hotkeys.quick_task") setHkTask(s.value);
+          if (s.key === "hotkeys.agent") setHkAgent(s.value);
+          if (s.key === "hotkeys.pomodoro") setHkPomodoro(s.value);
+
+          if (s.key === "notifications.tasks") setNotifTasks(s.value === "true");
+          if (s.key === "notifications.calendar") setNotifCalendar(s.value === "true");
+          if (s.key === "notifications.emails") setNotifEmails(s.value === "true");
+          if (s.key === "notifications.studies") setNotifStudies(s.value === "true");
+          if (s.key === "notifications.finances") setNotifFinances(s.value === "true");
+          if (s.key === "notifications.automations") setNotifAutomations(s.value === "true");
         });
       }
 
@@ -105,7 +147,7 @@ export function SettingsPage() {
         setSyncStatus(syncData.value);
       }
     } catch {
-      toast({ title: "Erro ao carregar configurações", type: "error" });
+      toast({ title: "Erro ao carregar configuraï¿½ï¿½es", type: "error" });
     } finally {
       setIsLoading(false);
     }
@@ -138,7 +180,7 @@ export function SettingsPage() {
       setRestoreId(null);
       loadSettings();
     } catch (err: any) {
-      toast({ title: "Erro na restauração", type: "error" });
+      toast({ title: "Erro na restauraï¿½ï¿½o", type: "error" });
     } finally {
       
     }
@@ -148,7 +190,7 @@ export function SettingsPage() {
     if (!deleteBackupId) return;
     try {
       await api.delete(`/api/backups/${deleteBackupId}`);
-      toast({ title: "Backup excluído do disco", type: "info" });
+      toast({ title: "Backup excluï¿½do do disco", type: "info" });
       setDeleteBackupId(null);
       const bList = await api.get<BackupItem[]>("/api/backups");
       setBackups(bList || []);
@@ -162,15 +204,15 @@ export function SettingsPage() {
       const res = await api.post<{ authorization_url: string; state: string }>(`/api/emails/connect/${providerName}/init`);
       if (res?.authorization_url) {
         window.open(res.authorization_url, "_blank");
-        toast({ title: `Navegador aberto para autenticação ${providerName === 'gmail' ? 'Google' : 'Microsoft'} OAuth`, type: "info" });
+        toast({ title: `Navegador aberto para autenticaï¿½ï¿½o ${providerName === 'gmail' ? 'Google' : 'Microsoft'} OAuth`, type: "info" });
       }
     } catch {
       try {
         await api.post(`/api/emails/connect/mock?provider=${providerName}`);
-        toast({ title: `Conta ${providerName.toUpperCase()} de demonstração conectada`, type: "success" });
+        toast({ title: `Conta ${providerName.toUpperCase()} de demonstraï¿½ï¿½o conectada`, type: "success" });
         await loadSettings();
       } catch {
-        toast({ title: `Erro ao iniciar conexão com ${providerName}`, type: "error" });
+        toast({ title: `Erro ao iniciar conexï¿½o com ${providerName}`, type: "error" });
       }
     }
   };
@@ -180,7 +222,7 @@ export function SettingsPage() {
     try {
       await api.post("/api/emails/sync");
       await api.post("/api/sync/start");
-      toast({ title: "Sincronização executada com sucesso!", type: "success" });
+      toast({ title: "Sincronizaï¿½ï¿½o executada com sucesso!", type: "success" });
       await loadSettings();
     } catch {
       toast({ title: "Erro ao sincronizar", type: "error" });
@@ -204,7 +246,7 @@ export function SettingsPage() {
     try {
       await api.put(`/api/settings/${key}`, { value });
     } catch {
-      // Ignorar se a chave ainda não existir
+      // Ignorar se a chave ainda nï¿½o existir
     }
   };
 
@@ -217,10 +259,47 @@ export function SettingsPage() {
         handleSaveSetting("ai_provider", aiProvider),
         handleSaveSetting("ai_model", aiModel),
         handleSaveSetting("user_name", userName),
+        // Windows & Hotkeys
+        handleSaveSetting("windows.startup_enabled", startupEnabled.toString()),
+        handleSaveSetting("windows.startup_minimized", startupMinimized.toString()),
+        handleSaveSetting("windows.startup_tray", startupTray.toString()),
+        handleSaveSetting("windows.close_behavior", closeBehavior),
+        handleSaveSetting("windows.notifications_enabled", nativeNotifications.toString()),
+        handleSaveSetting("hotkeys.command_palette", hkPalette),
+        handleSaveSetting("hotkeys.quick_task", hkTask),
+        handleSaveSetting("hotkeys.agent", hkAgent),
+        handleSaveSetting("hotkeys.pomodoro", hkPomodoro),
+        handleSaveSetting("notifications.tasks", notifTasks.toString()),
+        handleSaveSetting("notifications.calendar", notifCalendar.toString()),
+        handleSaveSetting("notifications.emails", notifEmails.toString()),
+        handleSaveSetting("notifications.studies", notifStudies.toString()),
+        handleSaveSetting("notifications.finances", notifFinances.toString()),
+        handleSaveSetting("notifications.automations", notifAutomations.toString()),
       ]);
-      toast({ title: "Configurações salvas com sucesso!", type: "success" });
+
+      // Sincronizar com Tauri se estiver no Desktop Host
+      try {
+        const { invoke } = await import("@tauri-apps/api/core");
+        await invoke("set_close_behavior", { behavior: closeBehavior });
+        await invoke("update_hotkey", { shortcut: hkPalette, action: "open_command_palette" });
+        await invoke("update_hotkey", { shortcut: hkTask, action: "open_quick_task" });
+        await invoke("update_hotkey", { shortcut: hkAgent, action: "open_agent" });
+        await invoke("update_hotkey", { shortcut: hkPomodoro, action: "open_pomodoro" });
+
+        // Autostart Plugin
+        try {
+          const { enable, disable } = await import("@tauri-apps/plugin-autostart");
+          if (startupEnabled) {
+            await enable();
+          } else {
+            await disable();
+          }
+        } catch {}
+      } catch {}
+
+      toast({ title: "ConfiguraÃ§Ãµes salvas com sucesso!", type: "success" });
     } catch {
-      toast({ title: "Erro ao salvar preferências", type: "error" });
+      toast({ title: "Erro ao salvar preferÃªncias", type: "error" });
     } finally {
       setIsSaving(false);
     }
@@ -234,9 +313,9 @@ export function SettingsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-800/40 pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Configurações</h1>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Configuraï¿½ï¿½es</h1>
           <p className="text-sm text-surface-400">
-            Personalize temas, contas conectadas, IA, backups criptografados e sincronização offline-first.
+            Personalize temas, contas conectadas, IA, backups criptografados e sincronizaï¿½ï¿½o offline-first.
           </p>
         </div>
       </div>
@@ -245,9 +324,10 @@ export function SettingsPage() {
       <div className="flex items-center gap-2 border-b border-surface-800/60 pb-3 overflow-x-auto">
         {[
           { key: "general", label: "Geral & Perfil", icon: Laptop },
-          { key: "integrations", label: "Integrações & E-mail", icon: Mail },
-          { key: "sync", label: "Backup & Sincronização", icon: Cloud },
-          { key: "ai", label: "Inteligência Artificial", icon: Sparkles },
+          { key: "windows", label: "Windows & Atalhos", icon: Keyboard },
+          { key: "integrations", label: "Integraes & E-mail", icon: Mail },
+          { key: "sync", label: "Backup & Sincronizao", icon: Cloud },
+          { key: "ai", label: "Inteligncia Artificial", icon: Sparkles },
           { key: "system", label: "Banco de Dados & Sistema", icon: Database },
         ].map((tab) => {
           const Icon = tab.icon;
@@ -269,7 +349,7 @@ export function SettingsPage() {
       </div>
 
       {isLoading ? (
-        <LoadingState message="Carregando preferências..." />
+        <LoadingState message="Carregando preferï¿½ncias..." />
       ) : (
         <form onSubmit={handleSaveAll} className="space-y-6">
           {activeTab === "general" && (
@@ -277,12 +357,12 @@ export function SettingsPage() {
               <div className="glass-card p-5 space-y-4">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <Laptop className="w-4 h-4 text-accent-400" />
-                  Perfil do Usuário
+                  Perfil do Usuï¿½rio
                 </h3>
 
                 <div>
                   <label className="text-xs font-semibold text-surface-300 mb-1.5 block">
-                    Nome de Exibição
+                    Nome de Exibiï¿½ï¿½o
                   </label>
                   <Input
                     value={userName}
@@ -290,7 +370,7 @@ export function SettingsPage() {
                     placeholder="Ex: Rodrigo"
                   />
                   <span className="text-[11px] text-surface-500 mt-1 block">
-                    Utilizado no Dashboard para saudações e comandos da IA.
+                    Utilizado no Dashboard para saudaï¿½ï¿½es e comandos da IA.
                   </span>
                 </div>
               </div>
@@ -298,7 +378,7 @@ export function SettingsPage() {
               <div className="glass-card p-5 space-y-4">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <Moon className="w-4 h-4 text-accent-400" />
-                  Aparência & Tema
+                  Aparï¿½ncia & Tema
                 </h3>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -312,8 +392,8 @@ export function SettingsPage() {
                     }`}
                   >
                     <div>
-                      <span className="text-sm font-bold text-white block">Escuro (Padrão)</span>
-                      <span className="text-xs text-surface-400">Tons escuros e roxo elétrico</span>
+                      <span className="text-sm font-bold text-white block">Escuro (Padrï¿½o)</span>
+                      <span className="text-xs text-surface-400">Tons escuros e roxo elï¿½trico</span>
                     </div>
                     {theme === "dark" && <Check className="w-4 h-4 text-accent-400" />}
                   </button>
@@ -329,10 +409,183 @@ export function SettingsPage() {
                   >
                     <div>
                       <span className="text-sm font-bold text-white block">OLED Black</span>
-                      <span className="text-xs text-surface-400">Preto puro para máxima economia</span>
+                      <span className="text-xs text-surface-400">Preto puro para mï¿½xima economia</span>
                     </div>
                     {theme === "oled" && <Check className="w-4 h-4 text-accent-400" />}
                   </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "windows" && (
+            <div className="space-y-6">
+              {/* Global Hotkeys Card */}
+              <div className="glass-card p-5 space-y-4">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Keyboard className="w-4 h-4 text-cyan-400" />
+                  Atalhos Globais do Windows (Global Hotkeys)
+                </h3>
+                <p className="text-xs text-surface-400">
+                  Estes atalhos funcionam mesmo quando o Resolva estiver minimizado ou enquanto vocÃª estiver usando qualquer outro aplicativo do Windows.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div>
+                    <label className="text-xs font-semibold text-surface-300 mb-1 block">
+                      Command Palette Global
+                    </label>
+                    <Input 
+                      value={hkPalette} 
+                      onChange={(e) => setHkPalette(e.target.value)} 
+                      placeholder="Ctrl+Space"
+                    />
+                    <span className="text-[11px] text-surface-500 mt-0.5 block">PadrÃ£o: Ctrl+Space</span>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-surface-300 mb-1 block">
+                      Criar Tarefa RÃ¡pida
+                    </label>
+                    <Input 
+                      value={hkTask} 
+                      onChange={(e) => setHkTask(e.target.value)} 
+                      placeholder="Ctrl+Shift+T"
+                    />
+                    <span className="text-[11px] text-surface-500 mt-0.5 block">PadrÃ£o: Ctrl+Shift+T</span>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-surface-300 mb-1 block">
+                      Abrir Resolva Agent
+                    </label>
+                    <Input 
+                      value={hkAgent} 
+                      onChange={(e) => setHkAgent(e.target.value)} 
+                      placeholder="Ctrl+Shift+A"
+                    />
+                    <span className="text-[11px] text-surface-500 mt-0.5 block">PadrÃ£o: Ctrl+Shift+A</span>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-surface-300 mb-1 block">
+                      Iniciar Pomodoro
+                    </label>
+                    <Input 
+                      value={hkPomodoro} 
+                      onChange={(e) => setHkPomodoro(e.target.value)} 
+                      placeholder="Ctrl+Shift+P"
+                    />
+                    <span className="text-[11px] text-surface-500 mt-0.5 block">PadrÃ£o: Ctrl+Shift+P</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* System Tray & Close Behavior */}
+              <div className="glass-card p-5 space-y-4">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Power className="w-4 h-4 text-emerald-400" />
+                  Comportamento da Janela & System Tray
+                </h3>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-semibold text-surface-300 mb-1.5 block">
+                      Ao fechar a janela principal (clique no X):
+                    </label>
+                    <select
+                      value={closeBehavior}
+                      onChange={(e) => setCloseBehavior(e.target.value)}
+                      className="w-full rounded-md border border-surface-700 bg-surface-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
+                    >
+                      <option value="minimize_to_tray">Manter RESOLVA ativo na bandeja do Windows (Recomendado)</option>
+                      <option value="exit_application">Encerrar o aplicativo completamente</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Windows Startup */}
+              <div className="glass-card p-5 space-y-4">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Laptop className="w-4 h-4 text-purple-400" />
+                  InicializaÃ§Ã£o com o Windows (Startup)
+                </h3>
+
+                <div className="space-y-3">
+                  <label className="flex items-center space-x-3 cursor-pointer">
+                    <input 
+                      type="checkbox"
+                      checked={startupEnabled}
+                      onChange={(e) => setStartupEnabled(e.target.checked)}
+                      className="rounded border-surface-700 bg-surface-900 text-accent-500 focus:ring-accent-500"
+                    />
+                    <span className="text-sm text-surface-200">Iniciar RESOLVA automaticamente com o Windows</span>
+                  </label>
+
+                  <div className="pl-6 space-y-2">
+                    <label className="flex items-center space-x-3 cursor-pointer opacity-90">
+                      <input 
+                        type="checkbox"
+                        checked={startupMinimized}
+                        onChange={(e) => setStartupMinimized(e.target.checked)}
+                        disabled={!startupEnabled}
+                        className="rounded border-surface-700 bg-surface-900 text-accent-500 focus:ring-accent-500 disabled:opacity-40"
+                      />
+                      <span className="text-xs text-surface-300">Iniciar minimizado</span>
+                    </label>
+
+                    <label className="flex items-center space-x-3 cursor-pointer opacity-90">
+                      <input 
+                        type="checkbox"
+                        checked={startupTray}
+                        onChange={(e) => setStartupTray(e.target.checked)}
+                        disabled={!startupEnabled}
+                        className="rounded border-surface-700 bg-surface-900 text-accent-500 focus:ring-accent-500 disabled:opacity-40"
+                      />
+                      <span className="text-xs text-surface-300">Iniciar direto na bandeja (sem abrir janela)</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notifications Card */}
+              <div className="glass-card p-5 space-y-4">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-yellow-400" />
+                  NotificaÃ§Ãµes Nativas do Windows
+                </h3>
+
+                <label className="flex items-center space-x-3 cursor-pointer pb-2 border-b border-surface-800">
+                  <input 
+                    type="checkbox"
+                    checked={nativeNotifications}
+                    onChange={(e) => setNativeNotifications(e.target.checked)}
+                    className="rounded border-surface-700 bg-surface-900 text-accent-500 focus:ring-accent-500"
+                  />
+                  <span className="text-sm font-semibold text-white">Habilitar notificaÃ§Ãµes nativas do sistema</span>
+                </label>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
+                  {[
+                    { label: "Tarefas & Prazos", val: notifTasks, set: setNotifTasks },
+                    { label: "Agenda & Compromissos", val: notifCalendar, set: setNotifCalendar },
+                    { label: "E-mails PrioritÃ¡rios", val: notifEmails, set: setNotifEmails },
+                    { label: "Estudos & Pomodoro", val: notifStudies, set: setNotifStudies },
+                    { label: "Alertas de FinanÃ§as", val: notifFinances, set: setNotifFinances },
+                    { label: "Rotinas & AutomaÃ§Ãµes", val: notifAutomations, set: setNotifAutomations },
+                  ].map((cat, i) => (
+                    <label key={i} className="flex items-center space-x-2 cursor-pointer">
+                      <input 
+                        type="checkbox"
+                        checked={cat.val}
+                        onChange={(e) => cat.set(e.target.checked)}
+                        disabled={!nativeNotifications}
+                        className="rounded border-surface-700 bg-surface-900 text-accent-500 focus:ring-accent-500 disabled:opacity-40"
+                      />
+                      <span className="text-xs text-surface-300">{cat.label}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
             </div>
@@ -345,7 +598,7 @@ export function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
                     <Cloud className="w-4 h-4 text-accent-400" />
-                    Status de Sincronização & Offline-First
+                    Status de Sincronizaï¿½ï¿½o & Offline-First
                   </h3>
                   <div className="flex items-center gap-2">
                     {syncStatus?.connectivity_status === "ONLINE" ? (
@@ -367,10 +620,10 @@ export function SettingsPage() {
                   </div>
                   <div className="p-3 rounded-lg bg-surface-900/40 border border-surface-800 space-y-1">
                     <span className="text-surface-500 font-mono">Fila Offline Pendente</span>
-                    <p className="font-bold text-white">{syncStatus?.pending_queue_count || 0} alterações</p>
+                    <p className="font-bold text-white">{syncStatus?.pending_queue_count || 0} alteraï¿½ï¿½es</p>
                   </div>
                   <div className="p-3 rounded-lg bg-surface-900/40 border border-surface-800 space-y-1">
-                    <span className="text-surface-500 font-mono">Último Backup</span>
+                    <span className="text-surface-500 font-mono">ï¿½ltimo Backup</span>
                     <p className="font-bold text-white">{syncStatus?.last_backup_time || "Nenhum ainda"}</p>
                   </div>
                 </div>
@@ -385,7 +638,7 @@ export function SettingsPage() {
                       Backups Criptografados (Windows DPAPI)
                     </h3>
                     <p className="text-xs text-surface-400 mt-0.5">
-                      Backups atômicos com integridade SHA-256 e proteção de rollback automático.
+                      Backups atï¿½micos com integridade SHA-256 e proteï¿½ï¿½o de rollback automï¿½tico.
                     </p>
                   </div>
 
@@ -402,7 +655,7 @@ export function SettingsPage() {
                 </div>
 
                 {backups.length === 0 ? (
-                  <p className="text-xs text-surface-500 py-4 text-center">Nenhum backup gerado até o momento.</p>
+                  <p className="text-xs text-surface-500 py-4 text-center">Nenhum backup gerado atï¿½ o momento.</p>
                 ) : (
                   <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
                     {backups.map((b) => (
@@ -418,7 +671,7 @@ export function SettingsPage() {
                             </Badge>
                           </div>
                           <p className="text-surface-500 text-[11px]">
-                            {formatDate(b.created_at)} • {(b.size_bytes / 1024).toFixed(1)} KB • SHA-256: {b.checksum_sha256.substring(0, 10)}...
+                            {formatDate(b.created_at)} ï¿½ {(b.size_bytes / 1024).toFixed(1)} KB ï¿½ SHA-256: {b.checksum_sha256.substring(0, 10)}...
                           </p>
                         </div>
 
@@ -485,7 +738,7 @@ export function SettingsPage() {
                     <div>
                       <p className="font-semibold text-white">{gmailAccount.email_address}</p>
                       <p className="text-surface-500 text-[11px]">
-                        Última sincronização: {gmailAccount.last_synced_at ? new Date(gmailAccount.last_synced_at).toLocaleString("pt-BR") : "Nunca"}
+                        ï¿½ltima sincronizaï¿½ï¿½o: {gmailAccount.last_synced_at ? new Date(gmailAccount.last_synced_at).toLocaleString("pt-BR") : "Nunca"}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -524,7 +777,7 @@ export function SettingsPage() {
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-white">Microsoft Outlook / 365</h4>
-                      <p className="text-xs text-surface-400">Microsoft Graph API, OAuth 2.0 e sincronização incremental</p>
+                      <p className="text-xs text-surface-400">Microsoft Graph API, OAuth 2.0 e sincronizaï¿½ï¿½o incremental</p>
                     </div>
                   </div>
                   {outlookAccount ? (
@@ -544,7 +797,7 @@ export function SettingsPage() {
                     <div>
                       <p className="font-semibold text-white">{outlookAccount.email_address}</p>
                       <p className="text-surface-500 text-[11px]">
-                        Última sincronização: {outlookAccount.last_synced_at ? new Date(outlookAccount.last_synced_at).toLocaleString("pt-BR") : "Nunca"}
+                        ï¿½ltima sincronizaï¿½ï¿½o: {outlookAccount.last_synced_at ? new Date(outlookAccount.last_synced_at).toLocaleString("pt-BR") : "Nunca"}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -580,7 +833,7 @@ export function SettingsPage() {
             <div className="glass-card p-5 space-y-4">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-accent-400" />
-                Motor de Inteligência Artificial
+                Motor de Inteligï¿½ncia Artificial
               </h3>
 
               <div>
@@ -592,7 +845,7 @@ export function SettingsPage() {
                   onChange={(e) => setAiProvider(e.target.value)}
                   className="w-full rounded-md border border-surface-700 bg-surface-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
                 >
-                  <option value="mock">Modo Offline / Local (Demonstração)</option>
+                  <option value="mock">Modo Offline / Local (Demonstraï¿½ï¿½o)</option>
                   <option value="openai">OpenAI (GPT-4o / GPT-4o-mini)</option>
                   <option value="anthropic">Anthropic (Claude 3.5 Sonnet)</option>
                 </select>
@@ -634,21 +887,21 @@ export function SettingsPage() {
             <div className="glass-card p-5 space-y-4">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Database className="w-4 h-4 text-accent-400" />
-                Armazenamento & Segurança
+                Armazenamento & Seguranï¿½a
               </h3>
 
               <div className="space-y-2 text-xs text-surface-400">
                 <p>
-                  <strong>Banco de dados:</strong> SQLite assíncrono com WAL mode ativo em <code className="text-accent-400">./resolva.db</code>
+                  <strong>Banco de dados:</strong> SQLite assï¿½ncrono com WAL mode ativo em <code className="text-accent-400">./resolva.db</code>
                 </p>
                 <p>
                   <strong>Cofre de Tokens:</strong> Windows DPAPI / Vault isolado no AppData (tokens OAuth de Gmail e Outlook protegidos fora do SQLite).
                 </p>
                 <p>
-                  <strong>Backend:</strong> FastAPI assíncrono rodando em <code className="text-accent-400">http://127.0.0.1:8700</code>
+                  <strong>Backend:</strong> FastAPI assï¿½ncrono rodando em <code className="text-accent-400">http://127.0.0.1:8700</code>
                 </p>
                 <p>
-                  <strong>Segurança:</strong> Sanitização estrita de HTML, proteção contra rate limit (429) e confirmação obrigatória de ações de escrita.
+                  <strong>Seguranï¿½a:</strong> Sanitizaï¿½ï¿½o estrita de HTML, proteï¿½ï¿½o contra rate limit (429) e confirmaï¿½ï¿½o obrigatï¿½ria de aï¿½ï¿½es de escrita.
                 </p>
               </div>
             </div>
@@ -657,7 +910,7 @@ export function SettingsPage() {
           <div className="flex justify-end gap-3 pt-4 border-t border-surface-800">
             <Button type="submit" isLoading={isSaving} className="gap-2">
               <Save className="w-4 h-4" />
-              Salvar Alterações
+              Salvar Alteraï¿½ï¿½es
             </Button>
           </div>
         </form>
@@ -669,8 +922,8 @@ export function SettingsPage() {
         onClose={() => setRestoreId(null)}
         onConfirm={handleConfirmRestore}
         title="Restaurar Banco de Dados"
-        message="Restaurar este backup substituirá os dados atuais pelo estado salvo neste arquivo. Um backup de segurança será criado automaticamente antes da restauração."
-        confirmLabel="Confirmar Restauração"
+        message="Restaurar este backup substituirï¿½ os dados atuais pelo estado salvo neste arquivo. Um backup de seguranï¿½a serï¿½ criado automaticamente antes da restauraï¿½ï¿½o."
+        confirmLabel="Confirmar Restauraï¿½ï¿½o"
         variant="destructive"
       />
 

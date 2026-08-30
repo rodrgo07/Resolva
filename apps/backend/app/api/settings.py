@@ -29,11 +29,13 @@ async def update_setting(key: str, setting_in: SettingUpdate, db: AsyncSession =
     result = await db.execute(query)
     setting = result.scalars().first()
     if not setting:
-        raise HTTPException(status_code=404, detail="Setting not found")
+        setting = AppSetting(key=key, value=setting_in.value, type="string")
+        db.add(setting)
+        await db.commit()
+        await db.refresh(setting)
+        return setting
         
-    update_q = update(AppSetting).where(AppSetting.key == key).values(
-        value=setting_in.value
-    ).returning(AppSetting)
-    result = await db.execute(update_q)
+    setting.value = setting_in.value
     await db.commit()
-    return result.scalars().first()
+    await db.refresh(setting)
+    return setting

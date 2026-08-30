@@ -1,4 +1,4 @@
-﻿from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional
 from datetime import datetime, date
 from sqlalchemy import select, and_
 
@@ -284,5 +284,107 @@ class ExecuteAutomationTool(BaseTool):
         from app.automation.engine import AutomationEngine
         db = services.get("db")
         engine = AutomationEngine(db)
-        res = await engine.execute_automation(args["automation_id"])
-        return res
+        res = await engine.run_automation(args["automation_id"], is_confirmed=True)
+        return {"id": res.id, "status": res.status, "log": res.log}
+
+# ==========================================
+# 6. TOOLS NATIVAS DO WINDOWS (FASE 26)
+# ==========================================
+
+class GetSystemStatusTool(BaseTool):
+    name = "get_system_status"
+    description = "Retorna o status atual do sistema Resolva no Windows: conectividade, sincronização, kill switch de automações e hora do sistema."
+    parameters = {"type": "object", "properties": {}}
+    permission_level = PermissionLevel.READ
+    risk_level = RiskLevel.LOW
+    category = "windows"
+
+    async def execute(self, args: Dict[str, Any], services: Dict[str, Any]) -> Dict[str, Any]:
+        from app.automation.kill_switch import is_kill_switch_active
+        return {
+            "status": "online",
+            "automations_kill_switch": is_kill_switch_active(),
+            "timestamp": datetime.now().isoformat(),
+            "os": "windows"
+        }
+
+class OpenAllowedApplicationTool(BaseTool):
+    name = "open_allowed_application"
+    description = "Abre um aplicativo seguro do Windows previamente registrado na whitelist (ex: vscode, chrome, edge, spotify, notepad, calc). Requer confirmação."
+    parameters = {
+        "type": "object",
+        "properties": {
+            "app_name": {"type": "string", "description": "Nome do aplicativo autorizado (ex: vscode, chrome, spotify, notepad, calc)"}
+        },
+        "required": ["app_name"]
+    }
+    permission_level = PermissionLevel.EXECUTE
+    risk_level = RiskLevel.HIGH
+    requires_confirmation = True
+    confirmation_message = "Confirma a abertura do aplicativo Windows solicitado?"
+    category = "windows"
+
+    async def execute(self, args: Dict[str, Any], services: Dict[str, Any]) -> Dict[str, Any]:
+        from app.automation.security import ALLOWED_WINDOWS_APPS
+        import subprocess
+        app_name = args.get("app_name", "").lower().strip()
+        if app_name not in ALLOWED_WINDOWS_APPS:
+            return {"error": f"Aplicativo '{app_name}' não permitido na whitelist de segurança."}
+        try:
+            subprocess.Popen(app_name, shell=False)
+            return {"success": True, "message": f"Aplicativo '{app_name}' aberto com sucesso."}
+        except Exception as e:
+            return {"success": False, "message": f"Não foi possível abrir '{app_name}': {str(e)}"}
+
+class ShowNotificationTool(BaseTool):
+    name = "show_notification"
+    description = "Exibe uma notificação nativa para o usuário no Windows e registra na central de notificações."
+    parameters = {
+        "type": "object",
+        "properties": {
+            "title": {"type": "string", "description": "Título da notificação"},
+            "message": {"type": "string", "description": "Conteúdo da mensagem"},
+            "type": {"type": "string", "description": "Categoria (task, calendar, system, etc)", "default": "system"}
+        },
+        "required": ["title", "message"]
+    }
+    permission_level = PermissionLevel.EXECUTE
+    risk_level = RiskLevel.LOW
+    requires_confirmation = False
+    category = "windows"
+
+    async def execute(self, args: Dict[str, Any], services: Dict[str, Any]) -> Dict[str, Any]:
+        from app.models.notification import Notification
+        db = services.get("db")
+        notif = Notification(
+            title=args["title"],
+            message=args["message"],
+            type=args.get("type", "system"),
+            is_read=False
+        )
+        if db:
+            db.add(notif)
+            await db.commit()
+        return {"success": True, "title": args["title"], "message": args["message"]}
+
+class FocusResolvaTool(BaseTool):
+    name = "focus_resolva"
+    description = "Restaura e traz a janela do Resolva para frente no Windows."
+    parameters = {"type": "object", "properties": {}}
+    permission_level = PermissionLevel.READ
+    risk_level = RiskLevel.LOW
+    category = "windows"
+
+    async def execute(self, args: Dict[str, Any], services: Dict[str, Any]) -> Dict[str, Any]:
+        return {"success": True, "action": "focus_resolva", "message": "Janela do Resolva restaurada para o primeiro plano."}
+
+class OpenCommandPaletteTool(BaseTool):
+    name = "open_command_palette"
+    description = "Abre a interface do Command Palette global do Resolva."
+    parameters = {"type": "object", "properties": {}}
+    permission_level = PermissionLevel.READ
+    risk_level = RiskLevel.LOW
+    category = "windows"
+
+    async def execute(self, args: Dict[str, Any], services: Dict[str, Any]) -> Dict[str, Any]:
+        return {"success": True, "action": "open_command_palette", "message": "Command Palette aberta com sucesso."}

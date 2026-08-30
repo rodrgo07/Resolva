@@ -1,4 +1,4 @@
-﻿from datetime import datetime, timedelta
+from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -115,10 +115,19 @@ class AutomationEngine:
             log=log,
             error_message=error
         )
-        self.db.add(execution)
         try:
+            self.db.add(execution)
             await self.db.commit()
             await self.db.refresh(execution)
+            return ExecutionResponse.model_validate(execution)
         except Exception:
-            pass
-        return ExecutionResponse.model_validate(execution)
+            await self.db.rollback()
+            return ExecutionResponse(
+                id=None,
+                automation_id=automation_id,
+                status="failed",
+                started_at=now,
+                ended_at=now,
+                log=log,
+                error_message=error
+            )

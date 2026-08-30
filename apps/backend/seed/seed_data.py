@@ -298,6 +298,23 @@ async def seed_database():
             AppSetting(key="accent_color", value="#7c3aed", type="string"),
             AppSetting(key="ai_provider", value="mock", type="string"),
             AppSetting(key="user_name", value="Rodrigo", type="string"),
+            # Fase 26: Windows Integration, Hotkeys & System Settings
+            AppSetting(key="windows.startup_enabled", value="false", type="boolean"),
+            AppSetting(key="windows.startup_minimized", value="false", type="boolean"),
+            AppSetting(key="windows.startup_tray", value="false", type="boolean"),
+            AppSetting(key="windows.close_behavior", value="minimize_to_tray", type="string"),
+            AppSetting(key="windows.notifications_enabled", value="true", type="boolean"),
+            AppSetting(key="hotkeys.command_palette", value="Ctrl+Space", type="string"),
+            AppSetting(key="hotkeys.quick_task", value="Ctrl+Shift+T", type="string"),
+            AppSetting(key="hotkeys.agent", value="Ctrl+Shift+A", type="string"),
+            AppSetting(key="hotkeys.pomodoro", value="Ctrl+Shift+P", type="string"),
+            AppSetting(key="notifications.tasks", value="true", type="boolean"),
+            AppSetting(key="notifications.calendar", value="true", type="boolean"),
+            AppSetting(key="notifications.emails", value="true", type="boolean"),
+            AppSetting(key="notifications.studies", value="true", type="boolean"),
+            AppSetting(key="notifications.finances", value="true", type="boolean"),
+            AppSetting(key="notifications.automations", value="true", type="boolean"),
+            AppSetting(key="notifications.system", value="true", type="boolean"),
         ]
         session.add_all(settings_data)
 

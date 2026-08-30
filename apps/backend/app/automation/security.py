@@ -1,10 +1,11 @@
-﻿import re
+import re
 from typing import Tuple, Dict, Any
 
 # Whitelist estrita de ações suportadas pelo Resolva Automation Engine
 ALLOWED_ACTIONS = [
     # Notificações e Mensagens do Agent
     "CREATE_NOTIFICATION",
+    "SHOW_NOTIFICATION",
     "SHOW_AGENT_MESSAGE",
     "send_notification",
     
@@ -23,12 +24,18 @@ ALLOWED_ACTIONS = [
     "CREATE_EXPENSE",
     "create_expense",
     
-    # E-mails (Sincronização e Triagem)
+    # E-mails & Sincronização & Backup
     "SYNC_EMAIL",
+    "SYNC_NOW",
+    "CREATE_BACKUP",
     
     # Resumos
     "GENERATE_DAILY_SUMMARY",
     "GENERATE_WEEKLY_SUMMARY",
+    
+    # Interface & Navegação Nativa
+    "OPEN_RESOLVA",
+    "OPEN_COMMAND_PALETTE",
     
     # Execução Segura de Aplicativos Windows (Apenas Whitelist)
     "OPEN_APPLICATION",

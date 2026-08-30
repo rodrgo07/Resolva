@@ -1,4 +1,4 @@
-﻿from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 
@@ -55,8 +55,8 @@ class AutomationResponse(AutomationBase):
     model_config = ConfigDict(from_attributes=True)
 
 class ExecutionResponse(BaseModel):
-    id: int
-    automation_id: int
+    id: Optional[int] = None
+    automation_id: Optional[int] = None
     status: str
     started_at: datetime
     ended_at: Optional[datetime] = None

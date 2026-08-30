@@ -1,6 +1,6 @@
-import { create } from "zustand";
+﻿import { create } from "zustand";
 
-type Page =
+export type Page =
   | "dashboard"
   | "tasks"
   | "studies"
@@ -13,15 +13,21 @@ type Page =
   | "settings"
   | "notifications";
 
+export type QuickActionModalType = "task" | "expense" | "event" | "pomodoro" | null;
+
 interface AppState {
   // Navigation
   currentPage: Page;
   setCurrentPage: (page: Page) => void;
 
-  // Search
+  // Search & Global Command Palette
   isSearchOpen: boolean;
   setSearchOpen: (open: boolean) => void;
   toggleSearch: () => void;
+
+  // Quick Action Modals
+  activeQuickModal: QuickActionModalType;
+  setActiveQuickModal: (modal: QuickActionModalType) => void;
 
   // Sidebar
   isSidebarCollapsed: boolean;
@@ -46,6 +52,10 @@ export const useAppStore = create<AppState>((set) => ({
   isSearchOpen: false,
   setSearchOpen: (open) => set({ isSearchOpen: open }),
   toggleSearch: () => set((s) => ({ isSearchOpen: !s.isSearchOpen })),
+
+  // Quick Action Modals
+  activeQuickModal: null,
+  setActiveQuickModal: (modal) => set({ activeQuickModal: modal }),
 
   // Sidebar
   isSidebarCollapsed: false,

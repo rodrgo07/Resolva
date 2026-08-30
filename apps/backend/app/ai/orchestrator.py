@@ -1,4 +1,4 @@
-﻿from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional
 import time
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -18,7 +18,9 @@ from app.ai.tools.agent_tools import (
     GetTodayContextTool, OrganizeDayTool, GetOverdueTasksTool,
     GetUpcomingEventsTool, CompleteTaskTool, DeleteTaskTool,
     CreateCalendarEventTool, CreateStudySessionTool,
-    ListAutomationsTool, ExecuteAutomationTool
+    ListAutomationsTool, ExecuteAutomationTool,
+    GetSystemStatusTool, OpenAllowedApplicationTool, ShowNotificationTool,
+    FocusResolvaTool, OpenCommandPaletteTool
 )
 from app.ai.permissions import check_permission
 from app.ai.memory import AgentMemoryManager
@@ -59,7 +61,14 @@ def get_default_tools() -> List[BaseTool]:
 
         # Automations
         ListAutomationsTool(),
-        ExecuteAutomationTool()
+        ExecuteAutomationTool(),
+
+        # Windows Integration Tools (Fase 26)
+        GetSystemStatusTool(),
+        OpenAllowedApplicationTool(),
+        ShowNotificationTool(),
+        FocusResolvaTool(),
+        OpenCommandPaletteTool()
     ]
 
 class ResolvaAgent:
