@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     
     ENVIRONMENT: str = "development"
     SECRET_KEY: str = "change-this-to-a-random-secret-key"
-    ALLOWED_ORIGINS: str = "http://localhost:1420,https://tauri.localhost,http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:1420,http://localhost:8081"
+    ALLOWED_ORIGINS: str = "*"
     
     LOG_LEVEL: str = "INFO"
     LOG_FILE: str = _get_log_file()

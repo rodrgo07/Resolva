@@ -24,11 +24,14 @@ class ApiClient {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
 
+    const isGet = !options.method || options.method === "GET";
     const config: RequestInit = {
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
+      headers: isGet
+        ? {}
+        : {
+            "Content-Type": "application/json",
+            ...options.headers,
+          },
       ...options,
     };
 
