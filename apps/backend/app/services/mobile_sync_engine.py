@@ -131,7 +131,7 @@ class MobileSyncEngine:
         if since_cursor:
             stmt = stmt.where(SyncOperation.applied_at > since_cursor)
         
-        stmt = stmt.order_by(SyncOperation.applied_at.asc()).limit(limit)
+        stmt = stmt.order_by(SyncOperation.applied_at.desc()).limit(limit)
         res = await self.db.execute(stmt)
         ops = res.scalars().all()
 
