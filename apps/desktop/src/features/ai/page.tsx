@@ -184,9 +184,9 @@ export function AIPage() {
       {/* Sidebar: History & Agent Capabilities */}
       <div className="w-full lg:w-72 glass-card p-4 flex flex-col justify-between shrink-0 h-52 lg:h-full">
         <div className="flex flex-col h-full min-h-0">
-          <div className="flex items-center justify-between pb-3 mb-2 border-b border-surface-800">
-            <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-accent-400" />
+          <div className="flex items-center justify-between pb-3 mb-2 border-b border-border">
+            <h2 className="text-sm font-bold text-text-primary flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-accent-light" />
               Sessões do Agent
             </h2>
             <div className="flex items-center gap-1">
@@ -195,7 +195,7 @@ export function AIPage() {
                 variant="ghost"
                 onClick={() => setShowActivityDrawer(!showActivityDrawer)}
                 title="Ver atividade e auditoria do Agent"
-                className="h-7 w-7 p-0 text-surface-400 hover:text-white"
+                className="h-7 w-7 p-0 text-text-secondary hover:text-text-primary"
               >
                 <History className="w-3.5 h-3.5" />
               </Button>
@@ -203,7 +203,7 @@ export function AIPage() {
                 size="sm"
                 variant="outline"
                 onClick={handleNewConversation}
-                className="h-7 px-2 text-xs gap-1 border-surface-700 hover:text-white"
+                className="h-7 px-2 text-xs gap-1 border-border hover:text-text-primary"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Nova
@@ -213,9 +213,9 @@ export function AIPage() {
 
           <div className="flex-1 overflow-y-auto space-y-1 pr-1 min-h-0">
             {isHistoryLoading ? (
-              <div className="py-6 text-center text-xs text-surface-500">Carregando...</div>
+              <div className="py-6 text-center text-xs text-text-muted">Carregando...</div>
             ) : conversations.length === 0 ? (
-              <div className="py-6 text-center text-xs text-surface-500">
+              <div className="py-6 text-center text-xs text-text-muted">
                 Nenhuma sessão registrada
               </div>
             ) : (
@@ -225,14 +225,14 @@ export function AIPage() {
                   onClick={() => handleSelectConversation(convo.id)}
                   className={`flex items-center justify-between p-2 rounded-lg text-xs transition-all cursor-pointer group ${
                     currentConvoId === convo.id
-                      ? "bg-accent-500/20 text-accent-400 font-semibold border border-accent-500/30"
-                      : "text-surface-400 hover:text-white hover:bg-surface-800/60"
+                      ? "bg-accent/20 text-accent-light font-semibold border border-accent/30"
+                      : "text-text-secondary hover:text-text-primary hover:bg-surface-elevated/60"
                   }`}
                 >
                   <span className="truncate flex-1 pr-2">{convo.title}</span>
                   <button
                     onClick={(e) => handleDeleteConversation(e, convo.id)}
-                    className="opacity-0 group-hover:opacity-100 hover:text-red-400 p-0.5 rounded transition-opacity"
+                    className="opacity-0 group-hover:opacity-100 hover:text-error p-0.5 rounded transition-opacity"
                     title="Excluir sessão"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -243,9 +243,9 @@ export function AIPage() {
           </div>
         </div>
 
-        <div className="pt-3 border-t border-surface-800/80 text-[11px] text-surface-400 flex items-center justify-between">
+        <div className="pt-3 border-t border-border/80 text-[11px] text-text-secondary flex items-center justify-between">
           <span className="flex items-center gap-1.5 font-medium">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <ShieldCheck className="w-3.5 h-3.5 text-success" />
             Sandbox & Permissões Ativas
           </span>
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -255,14 +255,14 @@ export function AIPage() {
       {/* Main Agent Working Area */}
       <div className="flex-1 glass-card flex flex-col justify-between overflow-hidden relative">
         {/* Top Agent Bar */}
-        <div className="px-5 py-3 border-b border-surface-800/80 bg-surface-950/40 flex items-center justify-between">
+        <div className="px-5 py-3 border-b border-border/80 bg-background/40 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-accent-600/20 border border-accent-500/30 flex items-center justify-center text-accent-400">
+            <div className="w-7 h-7 rounded-lg bg-accent/20 border border-accent/30 flex items-center justify-center text-accent-light">
               <Bot className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-xs font-bold text-white tracking-tight">RESOLVA AGENT</h3>
-              <p className="text-[10px] text-surface-400">Cérebro central de produtividade e orquestração</p>
+              <h3 className="text-xs font-bold text-text-primary tracking-tight">RESOLVA AGENT</h3>
+              <p className="text-[10px] text-text-secondary">Cérebro central de produtividade e orquestração</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -270,7 +270,7 @@ export function AIPage() {
               size="sm"
               variant="outline"
               onClick={() => handleSendMessage("Resolva, organize meu dia.")}
-              className="h-7 text-xs gap-1.5 border-accent-500/30 text-accent-400 hover:bg-accent-500/10"
+              className="h-7 text-xs gap-1.5 border-accent/30 text-accent-light hover:bg-accent/10"
             >
               <Sparkles className="w-3 h-3" />
               Organizar Meu Dia
@@ -282,13 +282,13 @@ export function AIPage() {
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center max-w-xl mx-auto py-8">
-              <div className="p-4 rounded-2xl bg-accent-500/10 text-accent-400 mb-4 border border-accent-500/20 shadow-lg shadow-accent-600/10">
+              <div className="p-4 rounded-2xl bg-accent/10 text-accent-light mb-4 border border-accent/20 shadow-lg shadow-accent-600/10">
                 <Bot className="w-10 h-10" />
               </div>
-              <h2 className="text-xl font-bold text-white tracking-tight mb-2">
+              <h2 className="text-xl font-bold text-text-primary tracking-tight mb-2">
                 RESOLVA AGENT — Produtividade Pessoal Orquestrada
               </h2>
-              <p className="text-xs text-surface-400 leading-relaxed mb-6 max-w-md">
+              <p className="text-xs text-text-secondary leading-relaxed mb-6 max-w-md">
                 Compreendo seu contexto diário, organizo tarefas atrasadas, consulto compromissos, realizo triagem de e-mails (Gmail & Outlook) e sugiro blocos de tempo com total segurança local.
               </p>
 
@@ -300,13 +300,13 @@ export function AIPage() {
                     <button
                       key={idx}
                       onClick={() => handleSendMessage(qa.prompt)}
-                      className="p-3 rounded-xl border border-surface-700/60 bg-surface-900/60 hover:bg-surface-800/80 hover:border-accent-500/40 text-left text-xs text-surface-300 hover:text-white transition-all flex items-center justify-between group cursor-pointer"
+                      className="p-3 rounded-xl border border-border/60 bg-surface/60 hover:bg-surface-elevated/80 hover:border-accent/40 text-left text-xs text-text-secondary hover:text-text-primary transition-all flex items-center justify-between group cursor-pointer"
                     >
                       <div className="flex items-center gap-2.5 truncate pr-2">
-                        <Icon className="w-4 h-4 text-accent-400 shrink-0" />
+                        <Icon className="w-4 h-4 text-accent-light shrink-0" />
                         <span className="truncate">{qa.label}</span>
                       </div>
-                      <ArrowRight className="w-3.5 h-3.5 text-accent-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                      <ArrowRight className="w-3.5 h-3.5 text-accent-light opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                     </button>
                   );
                 })}
@@ -321,7 +321,7 @@ export function AIPage() {
                   className={`flex gap-3.5 ${isUser ? "justify-end" : "justify-start"} animate-fade-in`}
                 >
                   {!isUser && (
-                    <div className="w-8 h-8 rounded-xl bg-accent-600/20 border border-accent-500/30 flex items-center justify-center text-accent-400 shrink-0 mt-0.5">
+                    <div className="w-8 h-8 rounded-xl bg-accent/20 border border-accent/30 flex items-center justify-center text-accent-light shrink-0 mt-0.5">
                       <Bot className="w-4 h-4" />
                     </div>
                   )}
@@ -329,24 +329,24 @@ export function AIPage() {
                   <div
                     className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                       isUser
-                        ? "bg-accent-600 text-white rounded-tr-sm shadow-md"
-                        : "glass-card bg-surface-900/90 border border-surface-700/70 text-surface-100 rounded-tl-sm"
+                        ? "bg-accent text-text-primary rounded-tr-sm shadow-md"
+                        : "glass-card bg-surface/90 border border-border/70 text-text-primary rounded-tl-sm"
                     }`}
                   >
                     <p className="whitespace-pre-wrap">{msg.content}</p>
 
                     {/* AI Tool Trace Badges */}
                     {!isUser && msg.tool_calls && msg.tool_calls.length > 0 && (
-                      <div className="mt-2.5 pt-2 border-t border-surface-800/80 flex flex-wrap items-center gap-1.5">
-                        <span className="text-[10px] text-surface-400 flex items-center gap-1">
-                          <Zap className="w-3 h-3 text-yellow-400" /> Ações orquestradas:
+                      <div className="mt-2.5 pt-2 border-t border-border/80 flex flex-wrap items-center gap-1.5">
+                        <span className="text-[10px] text-text-secondary flex items-center gap-1">
+                          <Zap className="w-3 h-3 text-warning" /> Ações orquestradas:
                         </span>
                         {msg.tool_calls.map((tool, idx) => (
                           <span
                             key={idx}
-                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-800 text-[10px] text-accent-400 border border-surface-700 font-mono"
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-elevated text-[10px] text-accent-light border border-border font-mono"
                           >
-                            <CheckCircle2 className="w-2.5 h-2.5 text-green-400" />
+                            <CheckCircle2 className="w-2.5 h-2.5 text-success" />
                             {tool}
                           </span>
                         ))}
@@ -355,7 +355,7 @@ export function AIPage() {
                   </div>
 
                   {isUser && (
-                    <div className="w-8 h-8 rounded-xl bg-surface-800 border border-surface-700 flex items-center justify-center text-surface-300 shrink-0 mt-0.5">
+                    <div className="w-8 h-8 rounded-xl bg-surface-elevated border border-border flex items-center justify-center text-text-secondary shrink-0 mt-0.5">
                       <User className="w-4 h-4" />
                     </div>
                   )}
@@ -365,12 +365,12 @@ export function AIPage() {
           )}
 
           {isLoading && (
-            <div className="flex items-center gap-3 text-surface-400 text-xs py-2 animate-pulse">
-              <div className="w-8 h-8 rounded-xl bg-accent-600/20 border border-accent-500/30 flex items-center justify-center text-accent-400">
+            <div className="flex items-center gap-3 text-text-secondary text-xs py-2 animate-pulse">
+              <div className="w-8 h-8 rounded-xl bg-accent/20 border border-accent/30 flex items-center justify-center text-accent-light">
                 <Bot className="w-4 h-4" />
               </div>
-              <div className="flex items-center gap-2 glass-card px-3.5 py-2 rounded-xl border border-surface-700">
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-accent-400" />
+              <div className="flex items-center gap-2 glass-card px-3.5 py-2 rounded-xl border border-border">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-accent-light" />
                 <span>RESOLVA AGENT está orquestrando seu contexto...</span>
               </div>
             </div>
@@ -380,13 +380,13 @@ export function AIPage() {
         </div>
 
         {/* Input Bar */}
-        <div className="p-4 bg-surface-950/60 border-t border-surface-800/80">
+        <div className="p-4 bg-background/60 border-t border-border/80">
           <form
             onSubmit={(e) => {
               e.preventDefault();
               handleSendMessage();
             }}
-            className="flex items-center gap-2 glass p-1.5 rounded-xl border border-surface-700/80 focus-within:border-accent-500/80 transition-colors"
+            className="flex items-center gap-2 glass p-1.5 rounded-xl border border-border/80 focus-within:border-accent/80 transition-colors"
           >
             <input
               type="text"
@@ -394,7 +394,7 @@ export function AIPage() {
               onChange={(e) => setInputText(e.target.value)}
               placeholder="Peça para organizar seu dia, consultar pendências ou triar emails..."
               disabled={isLoading}
-              className="flex-1 bg-transparent px-3 py-1.5 text-sm text-white placeholder-surface-500 outline-none"
+              className="flex-1 bg-transparent px-3 py-1.5 text-sm text-text-primary placeholder-surface-500 outline-none"
             />
             <Button
               type="submit"
@@ -410,16 +410,16 @@ export function AIPage() {
 
         {/* Agent Activity Drawer / Overlay */}
         {showActivityDrawer && (
-          <div className="absolute inset-y-0 right-0 w-80 bg-surface-900/95 border-l border-surface-800 backdrop-blur-md p-4 shadow-2xl flex flex-col justify-between z-20 animate-fade-in">
+          <div className="absolute inset-y-0 right-0 w-80 bg-surface/95 border-l border-border backdrop-blur-md p-4 shadow-2xl flex flex-col justify-between z-20 animate-fade-in">
             <div>
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-surface-800">
-                <div className="flex items-center gap-2 text-white text-xs font-bold">
-                  <History className="w-4 h-4 text-accent-400" />
+              <div className="flex items-center justify-between pb-3 mb-3 border-b border-border">
+                <div className="flex items-center gap-2 text-text-primary text-xs font-bold">
+                  <History className="w-4 h-4 text-accent-light" />
                   Agent Activity & Auditoria
                 </div>
                 <button
                   onClick={() => setShowActivityDrawer(false)}
-                  className="text-surface-400 hover:text-white cursor-pointer"
+                  className="text-text-secondary hover:text-text-primary cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -427,29 +427,29 @@ export function AIPage() {
 
               <div className="space-y-2 overflow-y-auto max-h-[calc(100vh-16rem)] pr-1">
                 {activities.length === 0 ? (
-                  <p className="text-xs text-surface-500 text-center py-6">
+                  <p className="text-xs text-text-muted text-center py-6">
                     Nenhuma atividade registrada ainda.
                   </p>
                 ) : (
                   activities.map((act) => (
-                    <div key={act.id} className="p-2.5 rounded-lg bg-surface-800/40 border border-surface-800 text-xs space-y-1">
-                      <div className="flex items-center justify-between text-[10px] text-surface-400">
-                        <span className="font-mono text-accent-400">{act.action}</span>
+                    <div key={act.id} className="p-2.5 rounded-lg bg-surface-elevated/40 border border-border text-xs space-y-1">
+                      <div className="flex items-center justify-between text-[10px] text-text-secondary">
+                        <span className="font-mono text-accent-light">{act.action}</span>
                         <span>{act.timestamp}</span>
                       </div>
-                      <p className="text-surface-300 text-[11px]">{act.description}</p>
+                      <p className="text-text-secondary text-[11px]">{act.description}</p>
                     </div>
                   ))
                 )}
               </div>
             </div>
 
-            <div className="pt-3 border-t border-surface-800">
+            <div className="pt-3 border-t border-border">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleClearActivities}
-                className="w-full text-xs gap-1.5 border-surface-700 text-surface-400 hover:text-red-400 hover:border-red-500/30"
+                className="w-full text-xs gap-1.5 border-border text-text-secondary hover:text-error hover:border-red-500/30"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Limpar Auditoria

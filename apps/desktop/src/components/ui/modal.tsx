@@ -40,23 +40,23 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }: ModalPr
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
+        className="absolute inset-0 bg-background/60 backdrop-blur-sm animate-fade-in"
         onClick={onClose}
       />
       <div 
         ref={modalRef}
         className={cn(
-          "relative w-full glass-card bg-surface-900/90 border border-surface-700 p-6 rounded-xl shadow-xl animate-slide-up",
+          "relative w-full glass-card bg-surface/90 border border-border p-6 rounded-xl shadow-xl animate-slide-up",
           sizeClasses[size]
         )}
         role="dialog"
         aria-modal="true"
       >
         <div className="flex items-center justify-between mb-4">
-          {title && <h2 className="text-xl font-semibold text-white">{title}</h2>}
+          {title && <h2 className="text-xl font-semibold text-text-primary">{title}</h2>}
           <button
             onClick={onClose}
-            className="rounded-full p-1 text-surface-400 hover:bg-surface-800 hover:text-white transition-colors"
+            className="rounded-full p-1 text-text-secondary hover:bg-surface-elevated hover:text-text-primary transition-colors"
           >
             <X className="h-5 w-5" />
           </button>

@@ -109,14 +109,14 @@ export function NotificationsPage() {
 
   const getNotificationIcon = (source?: string, type?: string) => {
     const s = (source || type || "").toUpperCase();
-    if (s.includes("TASK")) return <CheckCircle2 className="w-4 h-4 text-emerald-400" />;
-    if (s.includes("CALENDAR") || s.includes("EVENT")) return <CalendarDays className="w-4 h-4 text-purple-400" />;
+    if (s.includes("TASK")) return <CheckCircle2 className="w-4 h-4 text-success" />;
+    if (s.includes("CALENDAR") || s.includes("EVENT")) return <CalendarDays className="w-4 h-4 text-accent-light" />;
     if (s.includes("EMAIL")) return <Mail className="w-4 h-4 text-orange-400" />;
-    if (s.includes("STUDY") || s.includes("POMODORO")) return <BookOpen className="w-4 h-4 text-blue-400" />;
-    if (s.includes("FINANCE")) return <Wallet className="w-4 h-4 text-green-400" />;
-    if (s.includes("AGENT") || s.includes("AI")) return <Sparkles className="w-4 h-4 text-yellow-400" />;
-    if (s.includes("SYNC")) return <RefreshCw className="w-4 h-4 text-cyan-400" />;
-    return <Bell className="w-4 h-4 text-accent-400" />;
+    if (s.includes("STUDY") || s.includes("POMODORO")) return <BookOpen className="w-4 h-4 text-info" />;
+    if (s.includes("FINANCE")) return <Wallet className="w-4 h-4 text-success" />;
+    if (s.includes("AGENT") || s.includes("AI")) return <Sparkles className="w-4 h-4 text-warning" />;
+    if (s.includes("SYNC")) return <RefreshCw className="w-4 h-4 text-info" />;
+    return <Bell className="w-4 h-4 text-accent-light" />;
   };
 
   const getPriorityBadge = (priority: string) => {
@@ -150,10 +150,10 @@ export function NotificationsPage() {
   return (
     <div className="space-y-6 animate-fade-in max-w-4xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-800/40 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Central de Notificações Inteligentes</h1>
-          <p className="text-sm text-surface-400">
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">Central de Notificações Inteligentes</h1>
+          <p className="text-sm text-text-secondary">
             Avisos preditivos, lembretes de agenda, e-mails prioritários e recomendações do Agent.
           </p>
         </div>
@@ -162,7 +162,7 @@ export function NotificationsPage() {
             variant="outline"
             size="sm"
             onClick={handleMarkAllAsRead}
-            className="gap-2 border-surface-700 hover:text-white"
+            className="gap-2 border-border hover:text-text-primary"
           >
             <CheckCheck className="w-4 h-4" />
             Marcar todas como lidas
@@ -174,49 +174,49 @@ export function NotificationsPage() {
       {summary && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="glass-card p-3 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-accent-500/10 text-accent-400">
+            <div className="p-2 rounded-lg bg-accent/10 text-accent-light">
               <Bell className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-xs text-surface-400">Não Lidas</span>
-              <p className="text-lg font-bold text-white">{summary.unread_count}</p>
+              <span className="text-xs text-text-secondary">Não Lidas</span>
+              <p className="text-lg font-bold text-text-primary">{summary.unread_count}</p>
             </div>
           </div>
 
           <div className="glass-card p-3 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-red-500/10 text-red-400">
+            <div className="p-2 rounded-lg bg-red-500/10 text-error">
               <AlertTriangle className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-xs text-surface-400">Urgentes</span>
-              <p className="text-lg font-bold text-white">{summary.urgent_count}</p>
+              <span className="text-xs text-text-secondary">Urgentes</span>
+              <p className="text-lg font-bold text-text-primary">{summary.urgent_count}</p>
             </div>
           </div>
 
           <div className="glass-card p-3 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400">
+            <div className="p-2 rounded-lg bg-amber-500/10 text-warning">
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-xs text-surface-400">Importantes</span>
-              <p className="text-lg font-bold text-white">{summary.important_count}</p>
+              <span className="text-xs text-text-secondary">Importantes</span>
+              <p className="text-lg font-bold text-text-primary">{summary.important_count}</p>
             </div>
           </div>
 
           <div className="glass-card p-3 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-surface-800 text-surface-300">
+            <div className="p-2 rounded-lg bg-surface-elevated text-text-secondary">
               <ShieldCheck className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-xs text-surface-400">Total Ativas</span>
-              <p className="text-lg font-bold text-white">{summary.total_count}</p>
+              <span className="text-xs text-text-secondary">Total Ativas</span>
+              <p className="text-lg font-bold text-text-primary">{summary.total_count}</p>
             </div>
           </div>
         </div>
       )}
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-surface-800/50">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-border/50">
         {[
           { key: "all", label: "Todas" },
           { key: "unread", label: "Não Lidas" },
@@ -233,8 +233,8 @@ export function NotificationsPage() {
             onClick={() => setFilterType(f.key as any)}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
               filterType === f.key
-                ? "bg-accent-500/20 text-accent-400 border border-accent-500/30"
-                : "text-surface-400 hover:text-surface-200 hover:bg-surface-800/60"
+                ? "bg-accent/20 text-accent-light border border-accent/30"
+                : "text-text-secondary hover:text-text-primary hover:bg-surface-elevated/60"
             }`}
           >
             {f.label}
@@ -247,13 +247,13 @@ export function NotificationsPage() {
         <LoadingState message="Carregando notificações inteligentes..." />
       ) : filteredNotifications.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center glass-card border-dashed">
-          <div className="p-4 rounded-full bg-surface-800/50 mb-4 text-surface-500">
+          <div className="p-4 rounded-full bg-surface-elevated/50 mb-4 text-text-muted">
             <Bell className="w-10 h-10" />
           </div>
-          <h3 className="text-base font-semibold text-surface-200 mb-1">
+          <h3 className="text-base font-semibold text-text-primary mb-1">
             Nenhuma notificação encontrada
           </h3>
-          <p className="text-xs text-surface-400 max-w-sm">
+          <p className="text-xs text-text-secondary max-w-sm">
             Você está em dia com todos os seus prazos, alertas e rotinas!
           </p>
         </div>
@@ -263,32 +263,32 @@ export function NotificationsPage() {
             <div
               key={notif.id}
               className={`glass-card p-4 flex items-start justify-between gap-4 transition-all duration-200 ${
-                notif.is_read ? "opacity-60 bg-surface-950/40" : "border-l-4 border-l-accent-500 bg-surface-900/80"
+                notif.is_read ? "opacity-60 bg-background/40" : "border-l-4 border-l-accent-500 bg-surface/80"
               }`}
             >
               <div className="flex items-start gap-3.5 flex-1 min-w-0">
-                <div className="p-2 rounded-lg bg-surface-800 border border-surface-700/60 shrink-0 mt-0.5">
+                <div className="p-2 rounded-lg bg-surface-elevated border border-border/60 shrink-0 mt-0.5">
                   {getNotificationIcon(notif.source, notif.type)}
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h4 className="text-sm font-bold text-white tracking-tight">{notif.title}</h4>
+                    <h4 className="text-sm font-bold text-text-primary tracking-tight">{notif.title}</h4>
                     {getPriorityBadge(notif.priority)}
                     {!notif.is_read && (
-                      <span className="w-2 h-2 rounded-full bg-accent-500" />
+                      <span className="w-2 h-2 rounded-full bg-accent" />
                     )}
                   </div>
 
-                  <p className="text-xs text-surface-300 mt-1 leading-relaxed">
+                  <p className="text-xs text-text-secondary mt-1 leading-relaxed">
                     {notif.message}
                   </p>
 
-                  <div className="flex items-center gap-4 mt-2.5 text-[11px] text-surface-500 flex-wrap">
+                  <div className="flex items-center gap-4 mt-2.5 text-[11px] text-text-muted flex-wrap">
                     <span>{formatDate(notif.created_at)}</span>
                     <button
                       onClick={() => handleNavigateFromNotification(notif)}
-                      className="text-accent-400 hover:text-accent-300 font-medium flex items-center gap-1 cursor-pointer"
+                      className="text-accent-light hover:text-accent-300 font-medium flex items-center gap-1 cursor-pointer"
                     >
                       <span>Ver no módulo</span>
                       <ArrowRight className="w-3 h-3" />
@@ -297,7 +297,7 @@ export function NotificationsPage() {
                     {notif.action_type && (
                       <button
                         onClick={() => handleExecuteAction(notif)}
-                        className="text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1 cursor-pointer"
+                        className="text-success hover:text-emerald-300 font-semibold flex items-center gap-1 cursor-pointer"
                       >
                         <span>Executar ação segura</span>
                       </button>
@@ -312,7 +312,7 @@ export function NotificationsPage() {
                     size="sm"
                     variant="ghost"
                     onClick={() => handleMarkAsRead(notif.id)}
-                    className="h-8 w-8 p-0 text-surface-400 hover:text-white"
+                    className="h-8 w-8 p-0 text-text-secondary hover:text-text-primary"
                     title="Marcar como lida"
                   >
                     <CheckCheck className="w-4 h-4" />
@@ -323,7 +323,7 @@ export function NotificationsPage() {
                   size="sm"
                   variant="ghost"
                   onClick={() => handleDismiss(notif.id)}
-                  className="h-8 w-8 p-0 text-surface-400 hover:text-red-400"
+                  className="h-8 w-8 p-0 text-text-secondary hover:text-error"
                   title="Dispensar notificação"
                 >
                   <X className="w-4 h-4" />

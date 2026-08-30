@@ -78,28 +78,28 @@ export function SmartWidget() {
   };
 
   return (
-    <div className="w-80 glass-card p-4 bg-surface-950/90 border border-surface-700/80 shadow-2xl rounded-2xl text-white select-none animate-fade-in space-y-3.5">
+    <div className="w-80 glass-card p-4 bg-background/90 border border-border/80 shadow-2xl rounded-2xl text-text-primary select-none animate-fade-in space-y-3.5">
       {/* Header Compacto */}
-      <div className="flex items-center justify-between border-b border-surface-800/80 pb-2.5">
+      <div className="flex items-center justify-between border-b border-border/80 pb-2.5">
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-md bg-accent-600 flex items-center justify-center font-bold text-[10px] text-white">
+          <div className="w-5 h-5 rounded-md bg-accent flex items-center justify-center font-bold text-[10px] text-text-primary">
             R
           </div>
-          <span className="font-bold text-xs tracking-wider text-surface-200">RESOLVA LIVE</span>
+          <span className="font-bold text-xs tracking-wider text-text-primary">RESOLVA LIVE</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-[10px] text-surface-400 font-mono">Sync Ativo</span>
+          <span className="text-[10px] text-text-secondary font-mono">Sync Ativo</span>
         </div>
       </div>
 
       {/* Card AGORA / Foco Atual */}
-      <div className="p-3 rounded-xl bg-surface-900/80 border border-surface-800 space-y-2">
+      <div className="p-3 rounded-xl bg-surface/80 border border-border space-y-2">
         <div className="flex items-center justify-between text-[10px]">
-          <span className="text-accent-400 font-bold uppercase tracking-wider flex items-center gap-1">
+          <span className="text-accent-light font-bold uppercase tracking-wider flex items-center gap-1">
             <Clock className="w-3 h-3" /> Foco Profundo
           </span>
-          <span className="font-mono text-white text-xs font-bold">{formatTime(timeRemaining)}</span>
+          <span className="font-mono text-text-primary text-xs font-bold">{formatTime(timeRemaining)}</span>
         </div>
 
         {/* Controles Rápidos */}
@@ -107,7 +107,7 @@ export function SmartWidget() {
           <Button
             size="sm"
             onClick={() => handleAction(isRunning ? "PAUSE" : (timeRemaining < 1500 && timeRemaining > 0 ? "RESUME" : "START"))}
-            className={`h-7 flex-1 text-xs font-bold gap-1 rounded-lg ${isRunning ? "bg-amber-600 hover:bg-amber-700" : "bg-accent-600 hover:bg-accent-700"}`}
+            className={`h-7 flex-1 text-xs font-bold gap-1 rounded-lg ${isRunning ? "bg-amber-600 hover:bg-amber-700" : "bg-accent hover:bg-accent"}`}
           >
             {isRunning ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
             {isRunning ? "Pausar" : "Iniciar"}
@@ -116,7 +116,7 @@ export function SmartWidget() {
             size="sm"
             variant="outline"
             onClick={() => handleAction("COMPLETE")}
-            className="h-7 px-2 border-surface-700 hover:bg-surface-800 text-surface-400 hover:text-white rounded-lg"
+            className="h-7 px-2 border-border hover:bg-surface-elevated text-text-secondary hover:text-text-primary rounded-lg"
             title="Finalizar Bloco"
           >
             <Square className="w-3 h-3" />
@@ -126,23 +126,23 @@ export function SmartWidget() {
 
 
       {/* Proactive Recommendation */}
-      <div className="p-2.5 rounded-xl bg-accent-500/10 border border-accent-500/20 text-xs space-y-1">
-        <div className="flex items-center gap-1 text-[10px] font-bold text-accent-400">
+      <div className="p-2.5 rounded-xl bg-accent/10 border border-accent/20 text-xs space-y-1">
+        <div className="flex items-center gap-1 text-[10px] font-bold text-accent-light">
           <Sparkles className="w-3 h-3" /> Sugestão do Agent
         </div>
-        <p className="text-[11px] text-surface-300 leading-snug">{recommendation}</p>
+        <p className="text-[11px] text-text-secondary leading-snug">{recommendation}</p>
       </div>
 
       {/* Footer / Abrir Completo */}
-      <div className="pt-1 flex items-center justify-between text-[10px] text-surface-400">
+      <div className="pt-1 flex items-center justify-between text-[10px] text-text-secondary">
         <button 
           onClick={() => setCurrentPage("dashboard")}
-          className="flex items-center gap-1 hover:text-white transition-colors cursor-pointer"
+          className="flex items-center gap-1 hover:text-text-primary transition-colors cursor-pointer"
         >
           <ExternalLink className="w-3 h-3" /> Abrir Resolva
         </button>
         <span className="flex items-center gap-1">
-          <Smartphone className="w-3 h-3 text-surface-400" />
+          <Smartphone className="w-3 h-3 text-text-secondary" />
           <span>Mobile Pareado</span>
         </span>
       </div>

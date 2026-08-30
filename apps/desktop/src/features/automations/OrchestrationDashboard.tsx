@@ -104,13 +104,13 @@ export function OrchestrationDashboard() {
   return (
     <div className="space-y-6 animate-fade-in p-2">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-800 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
         <div>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Compass className="w-5 h-5 text-accent-400" />
+          <h2 className="text-lg font-bold text-text-primary flex items-center gap-2">
+            <Compass className="w-5 h-5 text-accent-light" />
             Orquestração Inteligente & Workflows Adaptativos
           </h2>
-          <p className="text-xs text-surface-400 mt-1">
+          <p className="text-xs text-text-secondary mt-1">
             Planejamento contextual, scoring determinístico, mitigação de conflitos e human-in-the-loop.
           </p>
         </div>
@@ -120,16 +120,16 @@ export function OrchestrationDashboard() {
             size="sm"
             variant="outline"
             onClick={handleSimulate}
-            className="text-xs border-surface-700 text-surface-300 hover:text-white gap-1.5"
+            className="text-xs border-border text-text-secondary hover:text-text-primary gap-1.5"
           >
-            <Layers className="w-4 h-4 text-accent-400" /> Simular Plano (Dry Run)
+            <Layers className="w-4 h-4 text-accent-light" /> Simular Plano (Dry Run)
           </Button>
 
           <Button
             size="sm"
             onClick={handleRunOrchestration}
             disabled={isRunning}
-            className="gap-1.5 bg-accent-600 hover:bg-accent-700 text-xs text-white"
+            className="gap-1.5 bg-accent hover:bg-accent text-xs text-text-primary"
           >
             <Play className="w-4 h-4" /> Executar Orquestração
           </Button>
@@ -138,46 +138,46 @@ export function OrchestrationDashboard() {
 
       {/* Grid de Recomendações e Scoring */}
       <div className="space-y-3">
-        <h3 className="text-xs font-bold text-surface-400 uppercase tracking-wider flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-accent-400" />
+        <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-accent-light" />
           Workflows Selecionados por Relevância Contextual ({candidates.length})
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {candidates.map((cand) => (
-            <div key={cand.workflow_id} className="glass-card p-4 rounded-xl border border-surface-800 bg-surface-950/60 flex flex-col justify-between space-y-3">
+            <div key={cand.workflow_id} className="glass-card p-4 rounded-xl border border-border bg-background/60 flex flex-col justify-between space-y-3">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Badge variant={cand.score >= 80 ? "warning" : "secondary"} className="text-[10px]">
                     Score: {cand.score} pts
                   </Badge>
-                  <span className="text-[10px] text-surface-400 font-mono flex items-center gap-1">
+                  <span className="text-[10px] text-text-secondary font-mono flex items-center gap-1">
                     <Clock className="w-3 h-3" /> ~{cand.estimated_duration_seconds}s
                   </span>
                 </div>
 
-                <h4 className="text-sm font-bold text-white">{cand.name}</h4>
-                <p className="text-xs text-surface-400">{cand.reason}</p>
+                <h4 className="text-sm font-bold text-text-primary">{cand.name}</h4>
+                <p className="text-xs text-text-secondary">{cand.reason}</p>
 
-                <div className="p-2 rounded-lg bg-surface-900/70 border border-surface-800/80 space-y-1">
-                  <span className="text-[9px] font-bold text-surface-400 uppercase">Fatores Analisados:</span>
+                <div className="p-2 rounded-lg bg-surface/70 border border-border/80 space-y-1">
+                  <span className="text-[9px] font-bold text-text-secondary uppercase">Fatores Analisados:</span>
                   {cand.factors.map((f, idx) => (
-                    <div key={idx} className="text-[11px] text-surface-300 flex items-start gap-1.5">
-                      <span className="text-accent-400">•</span>
+                    <div key={idx} className="text-[11px] text-text-secondary flex items-start gap-1.5">
+                      <span className="text-accent-light">•</span>
                       <span>{f}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-surface-800/60 flex items-center justify-between text-[10px] text-surface-400">
+              <div className="pt-2 border-t border-border/60 flex items-center justify-between text-[10px] text-text-secondary">
                 <span>{cand.action_preview.length} ações</span>
                 {cand.required_confirmation ? (
-                  <span className="text-yellow-400 flex items-center gap-1 font-medium">
+                  <span className="text-warning flex items-center gap-1 font-medium">
                     <AlertTriangle className="w-3 h-3" /> Exige Confirmação
                   </span>
                 ) : (
-                  <span className="text-green-400 flex items-center gap-1 font-medium">
+                  <span className="text-success flex items-center gap-1 font-medium">
                     <CheckCircle2 className="w-3 h-3" /> Auto Seguro
                   </span>
                 )}
@@ -188,27 +188,27 @@ export function OrchestrationDashboard() {
       </div>
 
       {/* Histórico Recente de Orquestrações */}
-      <div className="space-y-3 pt-4 border-t border-surface-800">
-        <h3 className="text-xs font-bold text-surface-400 uppercase tracking-wider">
+      <div className="space-y-3 pt-4 border-t border-border">
+        <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider">
           Histórico de Execuções e Auditoria ({runs.length})
         </h3>
 
         <div className="space-y-2">
           {runs.map((r) => (
-            <div key={r.run_id} className="p-3 rounded-xl border border-surface-800 bg-surface-900/50 flex items-center justify-between text-xs">
+            <div key={r.run_id} className="p-3 rounded-xl border border-border bg-surface/50 flex items-center justify-between text-xs">
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-accent-400 font-bold">#{r.run_id.slice(-8)}</span>
+                  <span className="font-mono text-accent-light font-bold">#{r.run_id.slice(-8)}</span>
                   <Badge variant={r.status === "COMPLETED" ? "success" : r.status === "FAILED" ? "error" : "warning"} className="text-[10px]">
                     {r.status}
                   </Badge>
                   {r.is_dry_run && <Badge variant="outline" className="text-[9px]">DRY RUN</Badge>}
                 </div>
-                <p className="text-[11px] text-surface-400">
+                <p className="text-[11px] text-text-secondary">
                   Progresso: {r.completed_steps} de {r.total_steps} etapas concluídas • Disparo: {r.trigger_type}
                 </p>
               </div>
-              <span className="text-[10px] text-surface-400 font-mono">
+              <span className="text-[10px] text-text-secondary font-mono">
                 {new Date(r.created_at).toLocaleTimeString()}
               </span>
             </div>

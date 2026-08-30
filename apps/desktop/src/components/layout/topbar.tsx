@@ -1,4 +1,4 @@
-﻿import { Search, Bell } from "lucide-react"
+import { Search, Bell } from "lucide-react"
 import { useAppStore } from "@/stores/app-store"
 import { useNotificationStore } from "@/stores/notification-store"
 import { Button } from "@/components/ui/button"
@@ -23,25 +23,25 @@ export function Topbar() {
   const title = pageTitles[currentPage] || "Resolva"
   
   return (
-    <header className="h-16 w-full flex items-center justify-between px-8 border-b border-surface-800/50 bg-surface-900/30 backdrop-blur-md sticky top-0 z-30">
-      <h1 className="text-xl font-semibold text-white tracking-tight">{title}</h1>
+    <header className="h-16 w-full flex items-center justify-between px-8 border-b border-border bg-surface/50 backdrop-blur-xl sticky top-0 z-30">
+      <h1 className="text-xl font-bold text-text-primary tracking-tight">{title}</h1>
       
       <div className="flex items-center gap-4">
         <Button 
           variant="outline" 
           size="sm" 
-          className="h-9 w-64 justify-start text-surface-400 border-surface-700/50 bg-surface-900/50 hidden md:flex hover:text-white"
+          className="h-9 w-64 justify-start text-text-secondary border-border bg-surface-elevated/60 hidden md:flex hover:text-text-primary hover:border-accent/40 rounded-xl"
           onClick={() => setSearchOpen(true)}
         >
-          <Search className="mr-2 h-4 w-4" />
+          <Search className="mr-2 h-4 w-4 text-accent-light" />
           <span>Buscar comandos...</span>
-          <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border border-surface-700 bg-surface-800 px-1.5 text-[10px] font-medium text-surface-300">
+          <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border border-border bg-surface-hover px-1.5 text-[10px] font-medium text-text-muted">
             Ctrl+Space
           </kbd>
         </Button>
         
         <button 
-          className="md:hidden p-2 text-surface-400 hover:text-white rounded-md hover:bg-surface-800" 
+          className="md:hidden p-2 text-text-secondary hover:text-text-primary rounded-xl hover:bg-surface-hover" 
           onClick={() => setSearchOpen(true)}
         >
           <Search className="h-5 w-5" />
@@ -50,21 +50,22 @@ export function Topbar() {
         {/* Quick Notification Bell */}
         <button
           onClick={() => setCurrentPage("notifications")}
-          className="relative p-2 text-surface-400 hover:text-white rounded-lg hover:bg-surface-800/60 transition-colors"
+          className="relative p-2 text-text-secondary hover:text-text-primary rounded-xl hover:bg-surface-hover transition-colors"
           title="Notificações"
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute top-1 right-1 bg-accent-500 text-white text-[10px] font-bold rounded-full h-4 min-w-[16px] flex items-center justify-center px-1 shadow-sm animate-pulse">
+            <span className="absolute top-1 right-1 bg-accent text-text-primary text-[10px] font-bold rounded-full h-4 min-w-[16px] flex items-center justify-center px-1 shadow-sm animate-pulse">
               {unreadCount}
             </span>
           )}
         </button>
 
-        <div className="h-8 w-8 rounded-full bg-accent-600 flex items-center justify-center text-white font-medium text-sm ml-1 ring-2 ring-surface-800 cursor-pointer hover:bg-accent-700 transition-colors">
+        <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-accent to-accent-light flex items-center justify-center text-text-primary font-bold text-sm ml-1 ring-2 ring-border shadow-sm shadow-accent-glow cursor-pointer transition-transform hover:scale-105">
           R
         </div>
       </div>
     </header>
   )
 }
+

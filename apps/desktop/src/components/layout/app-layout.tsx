@@ -123,28 +123,46 @@ export function AppLayout() {
       }
     }
 
-    window.addEventListener("keydown", handleKeyDown)
+    // Polling contínuo de Health Check do Backend
+    const checkHealth = async () => {
+      try {
+        const res = await api.get<{ status: string }>("/api/health");
+        if (res && res.status === "ok") {
+          useAppStore.getState().setBackendStatus("connected");
+        } else {
+          useAppStore.getState().setBackendStatus("connecting");
+        }
+      } catch (err) {
+        useAppStore.getState().setBackendStatus("disconnected");
+      }
+    };
+
+    checkHealth();
+    const healthInterval = setInterval(checkHealth, 5000);
 
     return () => {
-      window.removeEventListener("keydown", handleKeyDown)
-      if (unlistenHotkey) unlistenHotkey()
-      if (unlistenTray) unlistenTray()
-    }
-  }, [])
+      clearInterval(healthInterval);
+      window.removeEventListener("keydown", handleKeyDown);
+      if (unlistenHotkey) unlistenHotkey();
+      if (unlistenTray) unlistenTray();
+    };
+  }, []);
+
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-surface-950 text-white font-sans selection:bg-accent-500/30">
+    <div className="flex h-screen w-screen overflow-hidden bg-background text-text-primary font-sans selection:bg-accent/30">
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden relative">
         <Topbar />
         <main className="flex-1 overflow-y-auto p-8 relative z-0">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             <Suspense fallback={<LoadingState message="Carregando módulo..." />}>
               <CurrentPageComponent />
             </Suspense>
           </div>
         </main>
       </div>
+
 
       <CommandPalette isOpen={isSearchOpen} onClose={() => setSearchOpen(false)} />
 

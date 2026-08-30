@@ -43,21 +43,21 @@ export function ActivityPage() {
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case "task": return <CheckCircle2 className="w-4 h-4 text-accent-400" />;
-      case "finance": return <Wallet className="w-4 h-4 text-green-400" />;
-      case "study": return <BookOpen className="w-4 h-4 text-blue-400" />;
-      case "automation": return <Zap className="w-4 h-4 text-yellow-400" />;
-      default: return <Activity className="w-4 h-4 text-surface-400" />;
+      case "task": return <CheckCircle2 className="w-4 h-4 text-accent-light" />;
+      case "finance": return <Wallet className="w-4 h-4 text-success" />;
+      case "study": return <BookOpen className="w-4 h-4 text-info" />;
+      case "automation": return <Zap className="w-4 h-4 text-warning" />;
+      default: return <Activity className="w-4 h-4 text-text-secondary" />;
     }
   };
 
   return (
     <div className="space-y-6 animate-fade-in max-w-4xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-800/40 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Linha do Tempo de Atividades</h1>
-          <p className="text-sm text-surface-400">
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">Linha do Tempo de Atividades</h1>
+          <p className="text-sm text-text-secondary">
             Registro cronológico e transparente de tudo o que foi realizado no Resolva.
           </p>
         </div>
@@ -77,8 +77,8 @@ export function ActivityPage() {
             onClick={() => setFilterType(f.key)}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
               filterType === f.key
-                ? "bg-accent-500/20 text-accent-400 border border-accent-500/30"
-                : "text-surface-400 hover:text-surface-200 hover:bg-surface-800/60"
+                ? "bg-accent/20 text-accent-light border border-accent/30"
+                : "text-text-secondary hover:text-text-primary hover:bg-surface-elevated/60"
             }`}
           >
             {f.label}
@@ -91,40 +91,40 @@ export function ActivityPage() {
         <LoadingState message="Carregando linha do tempo..." />
       ) : filteredActivities.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center glass-card border-dashed">
-          <div className="p-4 rounded-full bg-surface-800/50 mb-4 text-surface-500">
+          <div className="p-4 rounded-full bg-surface-elevated/50 mb-4 text-text-muted">
             <Activity className="w-10 h-10" />
           </div>
-          <h3 className="text-base font-semibold text-surface-200 mb-1">
+          <h3 className="text-base font-semibold text-text-primary mb-1">
             Nenhuma atividade recente
           </h3>
-          <p className="text-xs text-surface-400 max-w-sm">
+          <p className="text-xs text-text-secondary max-w-sm">
             Conclua tarefas, registre sessões de estudo ou acione rotinas para preencher sua linha do tempo.
           </p>
         </div>
       ) : (
-        <div className="relative border-l-2 border-surface-800 ml-4 pl-6 space-y-6">
+        <div className="relative border-l-2 border-border ml-4 pl-6 space-y-6">
           {filteredActivities.map((act) => (
             <div key={act.id} className="relative group">
               {/* Timeline Bullet */}
-              <div className="absolute -left-[35px] top-1.5 w-6 h-6 rounded-full bg-surface-900 border-2 border-surface-700 group-hover:border-accent-500 flex items-center justify-center transition-colors">
+              <div className="absolute -left-[35px] top-1.5 w-6 h-6 rounded-full bg-surface border-2 border-border group-hover:border-accent flex items-center justify-center transition-colors">
                 <div className="w-2 h-2 rounded-full bg-accent-400" />
               </div>
 
               {/* Card */}
-              <div className="glass-card p-4 hover:border-surface-600 transition-colors space-y-1.5">
+              <div className="glass-card p-4 hover:border-border-strong transition-colors space-y-1.5">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     {getActivityIcon(act.type)}
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                    <span className="text-xs font-bold text-text-primary uppercase tracking-wider">
                       {act.action}
                     </span>
                   </div>
-                  <span className="text-[11px] text-surface-500">
+                  <span className="text-[11px] text-text-muted">
                     {formatDate(act.created_at)}
                   </span>
                 </div>
 
-                <p className="text-xs text-surface-300 leading-relaxed">
+                <p className="text-xs text-text-secondary leading-relaxed">
                   {act.description}
                 </p>
               </div>

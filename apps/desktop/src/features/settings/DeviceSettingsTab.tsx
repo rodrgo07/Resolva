@@ -94,11 +94,11 @@ export function DeviceSettingsTab() {
       <div className="glass-card p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Smartphone className="w-4 h-4 text-accent-400" />
+            <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
+              <Smartphone className="w-4 h-4 text-accent-light" />
               Dispositivos Conectados (RESOLVA Mobile)
             </h3>
-            <p className="text-xs text-surface-400 mt-0.5">
+            <p className="text-xs text-text-secondary mt-0.5">
               Gerencie celulares Android e iOS pareados com seu RESOLVA Desktop através da Sync Layer segura.
             </p>
           </div>
@@ -117,14 +117,14 @@ export function DeviceSettingsTab() {
 
         {/* Modal / Card de Pareamento */}
         {isPairingModalOpen && pairingData && (
-          <div className="p-4 rounded-xl border border-accent-500/30 bg-accent-500/5 space-y-3 mt-4 animate-fade-in">
+          <div className="p-4 rounded-xl border border-accent/30 bg-accent/5 space-y-3 mt-4 animate-fade-in">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-accent-300 uppercase tracking-wider flex items-center gap-1.5">
-                <QrCode className="w-4 h-4 text-accent-400" /> Handshake de Pareamento Seguro
+                <QrCode className="w-4 h-4 text-accent-light" /> Handshake de Pareamento Seguro
               </span>
               <button 
                 onClick={() => setIsPairingModalOpen(false)}
-                className="text-xs text-surface-400 hover:text-white"
+                className="text-xs text-text-secondary hover:text-text-primary"
               >
                 ✕ Fechar
               </button>
@@ -132,23 +132,23 @@ export function DeviceSettingsTab() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
               <div className="space-y-2">
-                <p className="text-xs text-surface-300 leading-relaxed">
+                <p className="text-xs text-text-secondary leading-relaxed">
                   1. Abra o app <strong>RESOLVA Mobile</strong> no seu celular.<br/>
                   2. Toque em <strong>"Conectar ao RESOLVA"</strong>.<br/>
                   3. Digite o código de uso único abaixo ou escaneie a sessão:
                 </p>
-                <div className="p-3 bg-surface-900 border border-surface-700 rounded-lg text-center font-mono font-bold text-xl text-accent-400 tracking-widest">
+                <div className="p-3 bg-surface border border-border rounded-lg text-center font-mono font-bold text-xl text-accent-light tracking-widest">
                   {pairingData.pairing_code.slice(0, 3)} {pairingData.pairing_code.slice(3)}
                 </div>
-                <p className="text-[11px] text-surface-500 flex items-center gap-1">
+                <p className="text-[11px] text-text-muted flex items-center gap-1">
                   <Clock className="w-3 h-3" /> Expira em 5 minutos • Uso único
                 </p>
               </div>
 
-              <div className="p-3 bg-surface-900/60 border border-surface-800 rounded-lg text-xs space-y-1.5 font-mono text-surface-400">
-                <div><strong className="text-white">Desktop ID:</strong> {pairingData.desktop_device_id}</div>
-                <div><strong className="text-white">Endpoint Local:</strong> {pairingData.server_endpoint}</div>
-                <div className="truncate"><strong className="text-white">Nonce:</strong> {pairingData.nonce}</div>
+              <div className="p-3 bg-surface/60 border border-border rounded-lg text-xs space-y-1.5 font-mono text-text-secondary">
+                <div><strong className="text-text-primary">Desktop ID:</strong> {pairingData.desktop_device_id}</div>
+                <div><strong className="text-text-primary">Endpoint Local:</strong> {pairingData.server_endpoint}</div>
+                <div className="truncate"><strong className="text-text-primary">Nonce:</strong> {pairingData.nonce}</div>
               </div>
             </div>
           </div>
@@ -157,13 +157,13 @@ export function DeviceSettingsTab() {
 
       {/* Lista de Dispositivos */}
       <div className="glass-card p-5 space-y-4">
-        <h3 className="text-sm font-bold text-white flex items-center gap-2">
-          <Laptop className="w-4 h-4 text-emerald-400" />
+        <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
+          <Laptop className="w-4 h-4 text-success" />
           Dispositivos Pareados Ativos
         </h3>
 
         {devices.length === 0 ? (
-          <div className="p-6 text-center text-xs text-surface-500 border border-surface-800 rounded-lg">
+          <div className="p-6 text-center text-xs text-text-muted border border-border rounded-lg">
             Nenhum smartphone pareado até o momento. Clique em "Conectar Novo Celular" para iniciar.
           </div>
         ) : (
@@ -171,7 +171,7 @@ export function DeviceSettingsTab() {
             {devices.map((d) => (
               <div
                 key={d.id}
-                className="p-4 rounded-xl border border-surface-800 bg-surface-900/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                className="p-4 rounded-xl border border-border bg-surface/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
@@ -181,7 +181,7 @@ export function DeviceSettingsTab() {
                           type="text"
                           value={editName}
                           onChange={(e) => setEditName(e.target.value)}
-                          className="px-2 py-0.5 bg-surface-800 border border-surface-700 text-white rounded text-xs"
+                          className="px-2 py-0.5 bg-surface-elevated border border-border text-text-primary rounded text-xs"
                         />
                         <Button size="sm" onClick={() => handleRenameDevice(d.device_id)} className="h-6 px-2 text-[10px]">
                           Salvar
@@ -189,10 +189,10 @@ export function DeviceSettingsTab() {
                       </div>
                     ) : (
                       <>
-                        <span className="font-bold text-white text-sm">{d.device_name}</span>
+                        <span className="font-bold text-text-primary text-sm">{d.device_name}</span>
                         <button 
                           onClick={() => { setEditingDeviceId(d.device_id); setEditName(d.device_name); }}
-                          className="text-surface-400 hover:text-white"
+                          className="text-text-secondary hover:text-text-primary"
                         >
                           <Edit3 className="w-3 h-3" />
                         </button>
@@ -202,13 +202,13 @@ export function DeviceSettingsTab() {
                       {d.platform} • v{d.app_version}
                     </Badge>
                   </div>
-                  <p className="text-surface-500 font-mono text-[11px]">
+                  <p className="text-text-muted font-mono text-[11px]">
                     ID: {d.device_id} • Pareado em: {formatDate(d.paired_at)}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 border border-emerald-500/30 text-success">
                     <CheckCircle2 className="w-3 h-3" /> Conectado
                   </span>
                   <Button

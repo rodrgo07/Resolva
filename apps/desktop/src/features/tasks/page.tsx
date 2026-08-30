@@ -196,10 +196,10 @@ export function TasksPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-800/40 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Tarefas</h1>
-          <p className="text-sm text-surface-400">
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">Tarefas</h1>
+          <p className="text-sm text-text-secondary">
             Gerencie seus compromissos, subtarefas e prioridades do dia a dia.
           </p>
         </div>
@@ -211,7 +211,7 @@ export function TasksPage() {
 
       {/* Filter Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2">
-        <Filter className="w-4 h-4 text-surface-500 shrink-0 ml-1" />
+        <Filter className="w-4 h-4 text-text-muted shrink-0 ml-1" />
         {[
           { key: "all", label: "Todas" },
           { key: "today", label: "Hoje" },
@@ -224,8 +224,8 @@ export function TasksPage() {
             onClick={() => setFilter(f.key as any)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
               filter === f.key
-                ? "bg-accent-500/20 text-accent-400 border border-accent-500/30"
-                : "text-surface-400 hover:text-surface-200 hover:bg-surface-800/60"
+                ? "bg-accent/20 text-accent-light border border-accent/30"
+                : "text-text-secondary hover:text-text-primary hover:bg-surface-elevated/60"
             }`}
           >
             {f.label}
@@ -238,13 +238,13 @@ export function TasksPage() {
         <LoadingState message="Carregando tarefas..." />
       ) : filteredTasks.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center glass-card border-dashed">
-          <div className="p-4 rounded-full bg-surface-800/50 mb-4 text-surface-500">
+          <div className="p-4 rounded-full bg-surface-elevated/50 mb-4 text-text-muted">
             <CheckSquare className="w-10 h-10" />
           </div>
-          <h3 className="text-base font-semibold text-surface-200 mb-1">
+          <h3 className="text-base font-semibold text-text-primary mb-1">
             Nenhuma tarefa encontrada
           </h3>
-          <p className="text-xs text-surface-400 max-w-sm mb-5">
+          <p className="text-xs text-text-secondary max-w-sm mb-5">
             Não há afazeres para a categoria ou filtro selecionado.
           </p>
           <Button onClick={handleOpenCreate} size="sm" className="gap-1.5">
@@ -262,17 +262,17 @@ export function TasksPage() {
               <div
                 key={task.id}
                 className={`glass-card p-4 transition-all duration-200 ${
-                  isCompleted ? "opacity-60 bg-surface-950/40" : "hover:border-surface-600"
+                  isCompleted ? "opacity-60 bg-background/40" : "hover:border-border-strong"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     <button
                       onClick={() => handleToggleComplete(task)}
-                      className="mt-0.5 text-surface-400 hover:text-accent-400 transition-colors cursor-pointer shrink-0"
+                      className="mt-0.5 text-text-secondary hover:text-accent-light transition-colors cursor-pointer shrink-0"
                     >
                       {isCompleted ? (
-                        <CheckCircle2 className="w-5 h-5 text-green-400" />
+                        <CheckCircle2 className="w-5 h-5 text-success" />
                       ) : (
                         <Circle className="w-5 h-5" />
                       )}
@@ -282,42 +282,42 @@ export function TasksPage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span
                           className={`text-sm font-semibold ${
-                            isCompleted ? "line-through text-surface-400" : "text-surface-100"
+                            isCompleted ? "line-through text-text-secondary" : "text-text-primary"
                           }`}
                         >
                           {task.title}
                         </span>
                         {getPriorityBadge(task.priority)}
                         {task.category && (
-                          <Badge variant="outline" className="text-[10px] py-0 px-1.5 border-surface-700">
+                          <Badge variant="outline" className="text-[10px] py-0 px-1.5 border-border">
                             {task.category}
                           </Badge>
                         )}
                       </div>
 
                       {task.description && (
-                        <p className="text-xs text-surface-400 mt-1 line-clamp-2 leading-relaxed">
+                        <p className="text-xs text-text-secondary mt-1 line-clamp-2 leading-relaxed">
                           {task.description}
                         </p>
                       )}
 
-                      <div className="flex items-center gap-4 mt-3 text-[11px] text-surface-400 flex-wrap">
+                      <div className="flex items-center gap-4 mt-3 text-[11px] text-text-secondary flex-wrap">
                         {task.due_date && (
                           <span className="flex items-center gap-1">
-                            <Calendar className="w-3.5 h-3.5 text-surface-500" />
+                            <Calendar className="w-3.5 h-3.5 text-text-muted" />
                             {formatDate(task.due_date)}
                           </span>
                         )}
                         {task.tags?.tags && task.tags.tags.length > 0 && (
                           <span className="flex items-center gap-1">
-                            <Tag className="w-3.5 h-3.5 text-surface-500" />
+                            <Tag className="w-3.5 h-3.5 text-text-muted" />
                             {task.tags.tags.join(", ")}
                           </span>
                         )}
                         {task.subtasks?.length > 0 && (
                           <button
                             onClick={() => setExpandedTaskId(isExpanded ? null : task.id)}
-                            className="flex items-center gap-1 text-accent-400 hover:text-accent-300 font-medium cursor-pointer"
+                            className="flex items-center gap-1 text-accent-light hover:text-accent-300 font-medium cursor-pointer"
                           >
                             {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
                             {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length} subtarefas
@@ -332,21 +332,21 @@ export function TasksPage() {
                     <button
                       onClick={() => handleDuplicate(task.id)}
                       title="Duplicar"
-                      className="p-1.5 text-surface-400 hover:text-white rounded-md hover:bg-surface-800 transition-colors cursor-pointer"
+                      className="p-1.5 text-text-secondary hover:text-text-primary rounded-md hover:bg-surface-elevated transition-colors cursor-pointer"
                     >
                       <Copy className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleOpenEdit(task)}
                       title="Editar"
-                      className="p-1.5 text-surface-400 hover:text-white rounded-md hover:bg-surface-800 transition-colors cursor-pointer"
+                      className="p-1.5 text-text-secondary hover:text-text-primary rounded-md hover:bg-surface-elevated transition-colors cursor-pointer"
                     >
                       <Edit3 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setDeleteTaskId(task.id)}
                       title="Excluir"
-                      className="p-1.5 text-surface-400 hover:text-red-400 rounded-md hover:bg-surface-800 transition-colors cursor-pointer"
+                      className="p-1.5 text-text-secondary hover:text-error rounded-md hover:bg-surface-elevated transition-colors cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -355,15 +355,15 @@ export function TasksPage() {
 
                 {/* Expanded Subtasks */}
                 {isExpanded && task.subtasks?.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-surface-800/60 pl-8 space-y-1.5">
+                  <div className="mt-3 pt-3 border-t border-border/60 pl-8 space-y-1.5">
                     {task.subtasks.map((sub) => (
-                      <div key={sub.id} className="flex items-center gap-2 text-xs text-surface-300">
+                      <div key={sub.id} className="flex items-center gap-2 text-xs text-text-secondary">
                         {sub.completed ? (
-                          <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-success" />
                         ) : (
-                          <Circle className="w-3.5 h-3.5 text-surface-500" />
+                          <Circle className="w-3.5 h-3.5 text-text-muted" />
                         )}
-                        <span className={sub.completed ? "line-through text-surface-500" : ""}>
+                        <span className={sub.completed ? "line-through text-text-muted" : ""}>
                           {sub.title}
                         </span>
                       </div>
@@ -385,7 +385,7 @@ export function TasksPage() {
       >
         <form onSubmit={handleSaveTask} className="space-y-4">
           <div>
-            <label className="text-xs font-semibold text-surface-300 mb-1.5 block">Título *</label>
+            <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Título *</label>
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -395,23 +395,23 @@ export function TasksPage() {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-surface-300 mb-1.5 block">Descrição</label>
+            <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Descrição</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
               placeholder="Detalhes adicionais ou instruções..."
-              className="w-full rounded-md border border-surface-700 bg-surface-800 px-3 py-2 text-sm text-white placeholder-surface-500 focus:outline-none focus:ring-2 focus:ring-accent-500"
+              className="w-full rounded-md border border-border bg-surface-elevated px-3 py-2 text-sm text-text-primary placeholder-surface-500 focus:outline-none focus:ring-2 focus:ring-accent-500"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-surface-300 mb-1.5 block">Prioridade</label>
+              <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Prioridade</label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as Priority)}
-                className="w-full rounded-md border border-surface-700 bg-surface-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
+                className="w-full rounded-md border border-border bg-surface-elevated px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-500"
               >
                 <option value="baixa">Baixa</option>
                 <option value="media">Média</option>
@@ -421,7 +421,7 @@ export function TasksPage() {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-surface-300 mb-1.5 block">Prazo (Data)</label>
+              <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Prazo (Data)</label>
               <Input
                 type="date"
                 value={dueDate}
@@ -432,7 +432,7 @@ export function TasksPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-surface-300 mb-1.5 block">Categoria</label>
+              <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Categoria</label>
               <Input
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
@@ -441,7 +441,7 @@ export function TasksPage() {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-surface-300 mb-1.5 block">Tags (separadas por vírgula)</label>
+              <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Tags (separadas por vírgula)</label>
               <Input
                 value={tagsInput}
                 onChange={(e) => setTagsInput(e.target.value)}
@@ -450,7 +450,7 @@ export function TasksPage() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-surface-800">
+          <div className="flex justify-end gap-3 pt-3 border-t border-border">
             <Button variant="ghost" type="button" onClick={() => setIsFormOpen(false)}>
               Cancelar
             </Button>

@@ -27,7 +27,7 @@ export function ConfirmationDialog({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
       <div className="space-y-4">
-        <p className="text-sm text-surface-300 leading-relaxed">
+        <p className="text-sm text-text-secondary leading-relaxed">
           {message}
         </p>
         <div className="flex justify-end gap-3 pt-2">

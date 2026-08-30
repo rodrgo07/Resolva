@@ -15,7 +15,13 @@ def _get_database_url() -> str:
         if local_db.exists():
             return f"sqlite+aiosqlite:///{local_db.absolute().as_posix()}"
         return f"sqlite+aiosqlite:///{db_path.as_posix()}"
-    return "sqlite+aiosqlite:///./resolva.db"
+def _get_log_file() -> str:
+    appdata = os.environ.get("APPDATA")
+    if appdata:
+        log_dir = Path(appdata) / "Resolva" / "logs"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        return str(log_dir / "backend.log")
+    return "resolva.log"
 
 class Settings(BaseSettings):
     BACKEND_HOST: str = "127.0.0.1"
@@ -30,10 +36,11 @@ class Settings(BaseSettings):
     
     ENVIRONMENT: str = "development"
     SECRET_KEY: str = "change-this-to-a-random-secret-key"
-    ALLOWED_ORIGINS: str = "http://localhost:1420,https://tauri.localhost,http://localhost:5173"
+    ALLOWED_ORIGINS: str = "http://localhost:1420,https://tauri.localhost,http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:1420,http://localhost:8081"
     
     LOG_LEVEL: str = "INFO"
-    LOG_FILE: str = "resolva.log"
+    LOG_FILE: str = _get_log_file()
+
 
     # Google OAuth 2.0 Credentials
     GMAIL_CLIENT_ID: Optional[str] = None

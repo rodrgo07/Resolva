@@ -229,10 +229,10 @@ export function CalendarPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-800/40 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Agenda</h1>
-          <p className="text-sm text-surface-400">
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">Agenda</h1>
+          <p className="text-sm text-text-secondary">
             Gerencie reuniões, sessões de estudo e compromissos do seu calendário.
           </p>
         </div>
@@ -247,25 +247,25 @@ export function CalendarPage() {
       {/* Calendar Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-4">
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-bold text-white min-w-[180px]">
+          <h2 className="text-lg font-bold text-text-primary min-w-[180px]">
             {MONTH_NAMES[currentDate.getMonth()]} {currentDate.getFullYear()}
           </h2>
-          <div className="flex items-center gap-1 bg-surface-800/60 rounded-lg p-1 border border-surface-700/60">
+          <div className="flex items-center gap-1 bg-surface-elevated/60 rounded-lg p-1 border border-border/60">
             <button
               onClick={handlePrevMonth}
-              className="p-1 rounded text-surface-400 hover:text-white hover:bg-surface-700 transition-colors cursor-pointer"
+              className="p-1 rounded text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={handleToday}
-              className="px-2.5 py-0.5 text-xs font-semibold text-surface-300 hover:text-white hover:bg-surface-700 rounded transition-colors cursor-pointer"
+              className="px-2.5 py-0.5 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface-hover rounded transition-colors cursor-pointer"
             >
               Hoje
             </button>
             <button
               onClick={handleNextMonth}
-              className="p-1 rounded text-surface-400 hover:text-white hover:bg-surface-700 transition-colors cursor-pointer"
+              className="p-1 rounded text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors cursor-pointer"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -273,11 +273,11 @@ export function CalendarPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="inline-flex rounded-lg bg-surface-800/60 p-1 border border-surface-700/60">
+          <div className="inline-flex rounded-lg bg-surface-elevated/60 p-1 border border-border/60">
             <button
               onClick={() => setViewMode("month")}
               className={`px-3 py-1 rounded text-xs font-semibold transition-colors cursor-pointer ${
-                viewMode === "month" ? "bg-accent-600 text-white" : "text-surface-400 hover:text-white"
+                viewMode === "month" ? "bg-accent text-text-primary" : "text-text-secondary hover:text-text-primary"
               }`}
             >
               Mês
@@ -285,7 +285,7 @@ export function CalendarPage() {
             <button
               onClick={() => setViewMode("list")}
               className={`px-3 py-1 rounded text-xs font-semibold transition-colors cursor-pointer ${
-                viewMode === "list" ? "bg-accent-600 text-white" : "text-surface-400 hover:text-white"
+                viewMode === "list" ? "bg-accent text-text-primary" : "text-text-secondary hover:text-text-primary"
               }`}
             >
               Lista Completa
@@ -303,7 +303,7 @@ export function CalendarPage() {
             {/* Days header */}
             <div className="grid grid-cols-7 gap-1 text-center mb-2">
               {DAYS_OF_WEEK.map((day) => (
-                <div key={day} className="text-xs font-bold text-surface-400 py-1 uppercase">
+                <div key={day} className="text-xs font-bold text-text-secondary py-1 uppercase">
                   {day}
                 </div>
               ))}
@@ -328,26 +328,26 @@ export function CalendarPage() {
                     onDoubleClick={() => handleOpenCreate(cell.date)}
                     className={`min-h-[80px] p-1.5 rounded-lg border transition-all cursor-pointer flex flex-col justify-between ${
                       isSelected
-                        ? "border-accent-500 bg-accent-500/10 shadow-sm"
+                        ? "border-accent bg-accent/10 shadow-sm"
                         : cell.isCurrentMonth
-                        ? "border-surface-800/80 bg-surface-900/40 hover:border-surface-700 hover:bg-surface-800/40"
-                        : "border-surface-900/40 bg-surface-950/30 opacity-30"
+                        ? "border-border/80 bg-surface/40 hover:border-border hover:bg-surface-elevated/40"
+                        : "border-surface-900/40 bg-background/30 opacity-30"
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <span
                         className={`text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center ${
                           cell.isToday
-                            ? "bg-accent-600 text-white"
+                            ? "bg-accent text-text-primary"
                             : isSelected
-                            ? "text-accent-400 font-extrabold"
-                            : "text-surface-300"
+                            ? "text-accent-light font-extrabold"
+                            : "text-text-secondary"
                         }`}
                       >
                         {cell.date.getDate()}
                       </span>
                       {dayEvents.length > 0 && (
-                        <span className="text-[10px] text-surface-400 font-medium px-1 rounded bg-surface-800">
+                        <span className="text-[10px] text-text-secondary font-medium px-1 rounded bg-surface-elevated">
                           {dayEvents.length}
                         </span>
                       )}
@@ -358,7 +358,7 @@ export function CalendarPage() {
                       {dayEvents.slice(0, 2).map((ev) => (
                         <div
                           key={ev.id}
-                          className="text-[10px] truncate px-1 py-0.5 rounded text-white font-medium"
+                          className="text-[10px] truncate px-1 py-0.5 rounded text-text-primary font-medium"
                           style={{ backgroundColor: ev.color || "#8b5cf6" }}
                           title={ev.title}
                         >
@@ -366,7 +366,7 @@ export function CalendarPage() {
                         </div>
                       ))}
                       {dayEvents.length > 2 && (
-                        <span className="text-[9px] text-surface-500 block text-right">
+                        <span className="text-[9px] text-text-muted block text-right">
                           +{dayEvents.length - 2} mais
                         </span>
                       )}
@@ -379,12 +379,12 @@ export function CalendarPage() {
 
           {/* Selected Day Agenda Sidebar (1 Col) */}
           <div className="glass-card p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-surface-800 pb-3">
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <div>
-                <h3 className="text-sm font-bold text-white">
+                <h3 className="text-sm font-bold text-text-primary">
                   {formatDate(selectedDate)}
                 </h3>
-                <span className="text-xs text-surface-400">
+                <span className="text-xs text-text-secondary">
                   {selectedDateEvents.length} compromisso(s)
                 </span>
               </div>
@@ -392,7 +392,7 @@ export function CalendarPage() {
                 size="sm"
                 variant="secondary"
                 onClick={() => handleOpenCreate(selectedDate)}
-                className="gap-1 border border-surface-700"
+                className="gap-1 border border-border"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Novo
@@ -400,7 +400,7 @@ export function CalendarPage() {
             </div>
 
             {selectedDateEvents.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center text-surface-500">
+              <div className="flex flex-col items-center justify-center py-12 text-center text-text-muted">
                 <CalendarIcon className="w-8 h-8 mb-2 opacity-30" />
                 <p className="text-xs">Nenhum compromisso marcado para este dia.</p>
               </div>
@@ -411,20 +411,20 @@ export function CalendarPage() {
                   return (
                     <div
                       key={ev.id}
-                      className="p-3 rounded-lg border border-surface-700/60 bg-surface-900/60 hover:border-surface-600 transition-colors space-y-2"
+                      className="p-3 rounded-lg border border-border/60 bg-surface/60 hover:border-border-strong transition-colors space-y-2"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <div
-                            className="p-1.5 rounded-md text-white"
+                            className="p-1.5 rounded-md text-text-primary"
                             style={{ backgroundColor: ev.color || "#8b5cf6" }}
                           >
                             <Icon className="w-3.5 h-3.5" />
                           </div>
                           <div>
-                            <h4 className="text-xs font-bold text-white">{ev.title}</h4>
-                            <div className="flex items-center gap-2 text-[10px] text-surface-400 mt-0.5">
-                              <Clock className="w-3 h-3 text-surface-500" />
+                            <h4 className="text-xs font-bold text-text-primary">{ev.title}</h4>
+                            <div className="flex items-center gap-2 text-[10px] text-text-secondary mt-0.5">
+                              <Clock className="w-3 h-3 text-text-muted" />
                               <span>{ev.all_day ? "Dia Inteiro" : `${formatTime(ev.start_time)} - ${formatTime(ev.end_time || ev.start_time)}`}</span>
                             </div>
                           </div>
@@ -433,13 +433,13 @@ export function CalendarPage() {
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => handleOpenEdit(ev)}
-                            className="p-1 text-surface-400 hover:text-white rounded transition-colors cursor-pointer"
+                            className="p-1 text-text-secondary hover:text-text-primary rounded transition-colors cursor-pointer"
                           >
                             <Edit3 className="w-3 h-3" />
                           </button>
                           <button
                             onClick={() => setDeleteId(ev.id)}
-                            className="p-1 text-surface-400 hover:text-red-400 rounded transition-colors cursor-pointer"
+                            className="p-1 text-text-secondary hover:text-error rounded transition-colors cursor-pointer"
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
@@ -447,7 +447,7 @@ export function CalendarPage() {
                       </div>
 
                       {ev.description && (
-                        <p className="text-xs text-surface-400 leading-relaxed bg-surface-950/40 p-2 rounded border border-surface-800/40">
+                        <p className="text-xs text-text-secondary leading-relaxed bg-background/40 p-2 rounded border border-border/40">
                           {ev.description}
                         </p>
                       )}
@@ -462,7 +462,7 @@ export function CalendarPage() {
         /* List View */
         <div className="glass-card p-5 space-y-3">
           {events.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center text-surface-500">
+            <div className="flex flex-col items-center justify-center py-16 text-center text-text-muted">
               <CalendarIcon className="w-8 h-8 mb-2 opacity-30" />
               <p className="text-xs">Nenhum evento registrado no calendário.</p>
             </div>
@@ -473,29 +473,29 @@ export function CalendarPage() {
                 return (
                   <div
                     key={ev.id}
-                    className="glass-card p-3.5 flex items-center justify-between gap-4 hover:border-surface-600 transition-colors"
+                    className="glass-card p-3.5 flex items-center justify-between gap-4 hover:border-border-strong transition-colors"
                   >
                     <div className="flex items-center gap-3.5">
                       <div
-                        className="p-2 rounded-lg text-white shrink-0"
+                        className="p-2 rounded-lg text-text-primary shrink-0"
                         style={{ backgroundColor: ev.color || "#8b5cf6" }}
                       >
                         <Icon className="w-4 h-4" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-white">{ev.title}</span>
-                          <Badge variant="outline" className="text-[10px] py-0 px-1.5 capitalize border-surface-700">
+                          <span className="text-sm font-semibold text-text-primary">{ev.title}</span>
+                          <Badge variant="outline" className="text-[10px] py-0 px-1.5 capitalize border-border">
                             {ev.type}
                           </Badge>
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-surface-400 mt-0.5">
+                        <div className="flex items-center gap-3 text-xs text-text-secondary mt-0.5">
                           <span className="flex items-center gap-1">
-                            <CalendarIcon className="w-3.5 h-3.5 text-surface-500" />
+                            <CalendarIcon className="w-3.5 h-3.5 text-text-muted" />
                             {formatDate(ev.start_time)}
                           </span>
                           <span className="flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5 text-surface-500" />
+                            <Clock className="w-3.5 h-3.5 text-text-muted" />
                             {ev.all_day ? "Dia Inteiro" : `${formatTime(ev.start_time)} - ${formatTime(ev.end_time || ev.start_time)}`}
                           </span>
                         </div>
@@ -505,13 +505,13 @@ export function CalendarPage() {
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => handleOpenEdit(ev)}
-                        className="p-1.5 text-surface-400 hover:text-white rounded hover:bg-surface-800 transition-colors cursor-pointer"
+                        className="p-1.5 text-text-secondary hover:text-text-primary rounded hover:bg-surface-elevated transition-colors cursor-pointer"
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => setDeleteId(ev.id)}
-                        className="p-1.5 text-surface-400 hover:text-red-400 rounded hover:bg-surface-800 transition-colors cursor-pointer"
+                        className="p-1.5 text-text-secondary hover:text-error rounded hover:bg-surface-elevated transition-colors cursor-pointer"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -533,7 +533,7 @@ export function CalendarPage() {
       >
         <form onSubmit={handleSaveEvent} className="space-y-4">
           <div>
-            <label className="text-xs font-semibold text-surface-300 mb-1.5 block">Título do Evento *</label>
+            <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Título do Evento *</label>
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -543,23 +543,23 @@ export function CalendarPage() {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-surface-300 mb-1.5 block">Descrição ou Pauta</label>
+            <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Descrição ou Pauta</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={2}
               placeholder="Notas, links de reunião ou tópicos a tratar..."
-              className="w-full rounded-md border border-surface-700 bg-surface-800 px-3 py-2 text-sm text-white placeholder-surface-500 focus:outline-none focus:ring-2 focus:ring-accent-500"
+              className="w-full rounded-md border border-border bg-surface-elevated px-3 py-2 text-sm text-text-primary placeholder-surface-500 focus:outline-none focus:ring-2 focus:ring-accent-500"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-surface-300 mb-1.5 block">Tipo de Evento</label>
+              <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Tipo de Evento</label>
               <select
                 value={eventType}
                 onChange={(e) => setEventType(e.target.value as any)}
-                className="w-full rounded-md border border-surface-700 bg-surface-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
+                className="w-full rounded-md border border-border bg-surface-elevated px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-500"
               >
                 <option value="event">Evento Geral</option>
                 <option value="appointment">Reunião / Compromisso</option>
@@ -569,7 +569,7 @@ export function CalendarPage() {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-surface-300 mb-1.5 block">Cor de Destaque</label>
+              <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Cor de Destaque</label>
               <Input
                 type="color"
                 value={color}
@@ -580,7 +580,7 @@ export function CalendarPage() {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-surface-300 mb-1.5 block">Data</label>
+            <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Data</label>
             <Input
               type="date"
               value={startDate}
@@ -595,9 +595,9 @@ export function CalendarPage() {
               id="allDayCheck"
               checked={allDay}
               onChange={(e) => setAllDay(e.target.checked)}
-              className="rounded border-surface-700 bg-surface-800 text-accent-600 focus:ring-accent-500"
+              className="rounded border-border bg-surface-elevated text-accent focus:ring-accent-500"
             />
-            <label htmlFor="allDayCheck" className="text-xs text-surface-300 cursor-pointer">
+            <label htmlFor="allDayCheck" className="text-xs text-text-secondary cursor-pointer">
               Compromisso de dia inteiro
             </label>
           </div>
@@ -605,7 +605,7 @@ export function CalendarPage() {
           {!allDay && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-surface-300 mb-1.5 block">Início</label>
+                <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Início</label>
                 <Input
                   type="time"
                   value={startTime}
@@ -614,7 +614,7 @@ export function CalendarPage() {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-surface-300 mb-1.5 block">Término</label>
+                <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Término</label>
                 <Input
                   type="time"
                   value={endTime}
@@ -624,7 +624,7 @@ export function CalendarPage() {
             </div>
           )}
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-surface-800">
+          <div className="flex justify-end gap-3 pt-3 border-t border-border">
             <Button variant="ghost" type="button" onClick={() => setIsModalOpen(false)}>
               Cancelar
             </Button>

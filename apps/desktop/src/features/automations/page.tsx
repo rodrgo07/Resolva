@@ -84,7 +84,7 @@ export function AutomationsPage() {
   const [actionType, setActionType] = useState<"CREATE_NOTIFICATION" | "OPEN_APPLICATION" | "START_STUDY_SESSION" | "SHOW_AGENT_MESSAGE">("CREATE_NOTIFICATION");
   const [appName, setAppName] = useState("vscode");
   const [notifTitle, setNotifTitle] = useState("Rotina Executada");
-  const [notifMsg, setNotifMsg] = useState("Sua automação foi concluída com sucesso.");
+  const [notifMsg, setNotifMsg] = useState("Sua automaÃ§Ã£o foi concluÃ­da com sucesso.");
   const [studyDuration, setStudyDuration] = useState(25);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -113,7 +113,7 @@ export function AutomationsPage() {
         setIsKillSwitchActive(ksRes.value?.is_active || false);
       }
     } catch {
-      toast({ title: "Erro ao carregar automações", type: "error" });
+      toast({ title: "Erro ao carregar automaÃ§Ãµes", type: "error" });
     } finally {
       setIsLoading(false);
     }
@@ -142,11 +142,11 @@ export function AutomationsPage() {
       if (isKillSwitchActive) {
         await api.post("/api/automations/kill-switch/deactivate");
         setIsKillSwitchActive(false);
-        toast({ title: "Automações reestabelecidas com sucesso.", type: "success" });
+        toast({ title: "AutomaÃ§Ãµes reestabelecidas com sucesso.", type: "success" });
       } else {
         await api.post("/api/automations/kill-switch/activate");
         setIsKillSwitchActive(true);
-        toast({ title: "Kill Switch Ativado! Todas as automações foram pausadas globalmente.", type: "warning" });
+        toast({ title: "Kill Switch Ativado! Todas as automaÃ§Ãµes foram pausadas globalmente.", type: "warning" });
       }
     } catch {
       toast({ title: "Erro ao alternar Kill Switch", type: "error" });
@@ -158,13 +158,13 @@ export function AutomationsPage() {
     try {
       const res = await api.post<AutomationExecution>(`/api/automations/${id}/run?confirmed=true`);
       if (res.status === "completed") {
-        toast({ title: "Automação executada com sucesso!", type: "success" });
+        toast({ title: "AutomaÃ§Ã£o executada com sucesso!", type: "success" });
       } else {
-        toast({ title: `Falha na execução: ${res.error_message || "Erro desconhecido"}`, type: "error" });
+        toast({ title: `Falha na execuÃ§Ã£o: ${res.error_message || "Erro desconhecido"}`, type: "error" });
       }
       loadExecutions(id);
     } catch {
-      toast({ title: "Erro ao disparar automação", type: "error" });
+      toast({ title: "Erro ao disparar automaÃ§Ã£o", type: "error" });
     } finally {
       setRunningId(null);
     }
@@ -207,7 +207,7 @@ export function AutomationsPage() {
     setActionType("CREATE_NOTIFICATION");
     setAppName("vscode");
     setNotifTitle("Rotina Matinal");
-    setNotifMsg("Bom dia! Suas tarefas do dia estão prontas.");
+    setNotifMsg("Bom dia! Suas tarefas do dia estÃ£o prontas.");
     setIsModalOpen(true);
   };
 
@@ -253,7 +253,7 @@ export function AutomationsPage() {
       setIsModalOpen(false);
       loadData();
     } catch {
-      toast({ title: "Erro ao cadastrar automação", type: "error" });
+      toast({ title: "Erro ao cadastrar automaÃ§Ã£o", type: "error" });
     } finally {
       setIsSubmitting(false);
     }
@@ -263,22 +263,22 @@ export function AutomationsPage() {
     if (!deleteId) return;
     try {
       await api.delete(`/api/automations/${deleteId}`);
-      toast({ title: "Automação excluída", type: "info" });
+      toast({ title: "AutomaÃ§Ã£o excluÃ­da", type: "info" });
       setDeleteId(null);
       loadData();
     } catch {
-      toast({ title: "Erro ao excluir automação", type: "error" });
+      toast({ title: "Erro ao excluir automaÃ§Ã£o", type: "error" });
     }
   };
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-800/40 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Automações & Rotinas</h1>
-          <p className="text-sm text-surface-400">
-            Crie rotinas inteligentes de produtividade, abertura de aplicativos e notificações locais sem programar.
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">AutomaÃ§Ãµes & Rotinas</h1>
+          <p className="text-sm text-text-secondary">
+            Crie rotinas inteligentes de produtividade, abertura de aplicativos e notificaÃ§Ãµes locais sem programar.
           </p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
@@ -289,8 +289,8 @@ export function AutomationsPage() {
             onClick={handleToggleKillSwitch}
             className={`gap-1.5 text-xs font-semibold ${
               isKillSwitchActive
-                ? "bg-red-500/20 text-red-400 border-red-500/40 hover:bg-red-500/30"
-                : "border-surface-700 text-surface-400 hover:text-white"
+                ? "bg-red-500/20 text-error border-red-500/40 hover:bg-red-500/30"
+                : "border-border text-text-secondary hover:text-text-primary"
             }`}
           >
             <Power className="w-3.5 h-3.5" />
@@ -299,17 +299,17 @@ export function AutomationsPage() {
 
           <Button onClick={handleOpenCreate} className="gap-2 shrink-0">
             <Plus className="w-4 h-4" />
-            Nova Automação
+            Nova AutomaÃ§Ã£o
           </Button>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-surface-800/60 pb-3">
+      <div className="flex items-center gap-2 border-b border-border/60 pb-3">
         {[
           { key: "automations", label: "Minhas Rotinas", icon: Zap },
-          { key: "templates", label: "Rotinas Pré-Configuradas", icon: Sparkles },
-          { key: "executions", label: "Histórico & Auditoria", icon: Layers },
+          { key: "templates", label: "Rotinas PrÃ©-Configuradas", icon: Sparkles },
+          { key: "executions", label: "HistÃ³rico & Auditoria", icon: Layers },
         ].map((tab) => {
           const Icon = tab.icon;
           return (
@@ -318,8 +318,8 @@ export function AutomationsPage() {
               onClick={() => setActiveTab(tab.key as any)}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 activeTab === tab.key
-                  ? "bg-accent-500/20 text-accent-400 border border-accent-500/30 font-semibold"
-                  : "text-surface-400 hover:text-surface-200 hover:bg-surface-800/60"
+                  ? "bg-accent/20 text-accent-light border border-accent/30 font-semibold"
+                  : "text-text-secondary hover:text-text-primary hover:bg-surface-elevated/60"
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -331,19 +331,19 @@ export function AutomationsPage() {
 
       {/* Content */}
       {isLoading ? (
-        <LoadingState message="Carregando rotinas de automação..." />
+        <LoadingState message="Carregando rotinas de automaÃ§Ã£o..." />
       ) : activeTab === "automations" ? (
         <div>
           {automations.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center glass-card border-dashed">
-              <div className="p-4 rounded-full bg-surface-800/50 mb-4 text-surface-500">
+              <div className="p-4 rounded-full bg-surface-elevated/50 mb-4 text-text-muted">
                 <Zap className="w-10 h-10" />
               </div>
-              <h3 className="text-base font-semibold text-surface-200 mb-1">
+              <h3 className="text-base font-semibold text-text-primary mb-1">
                 Nenhuma rotina cadastrada
               </h3>
-              <p className="text-xs text-surface-400 max-w-sm mb-5">
-                Automatize a abertura de programas de desenvolvimento, notificações de estudo ou sincronização de e-mails.
+              <p className="text-xs text-text-secondary max-w-sm mb-5">
+                Automatize a abertura de programas de desenvolvimento, notificaÃ§Ãµes de estudo ou sincronizaÃ§Ã£o de e-mails.
               </p>
               <div className="flex items-center gap-3">
                 <Button onClick={() => setActiveTab("templates")} variant="outline" size="sm" className="gap-1.5">
@@ -364,19 +364,19 @@ export function AutomationsPage() {
                 return (
                   <div
                     key={auto.id}
-                    className={`glass-card p-5 flex flex-col justify-between hover:border-surface-600 transition-all space-y-4 ${
+                    className={`glass-card p-5 flex flex-col justify-between hover:border-border-strong transition-all space-y-4 ${
                       !auto.is_active ? "opacity-60" : ""
                     }`}
                   >
                     <div>
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2.5">
-                          <div className={`p-2 rounded-lg ${auto.is_active ? "bg-yellow-500/10 text-yellow-400" : "bg-surface-800 text-surface-500"}`}>
+                          <div className={`p-2 rounded-lg ${auto.is_active ? "bg-yellow-500/10 text-warning" : "bg-surface-elevated text-text-muted"}`}>
                             <Zap className="w-4 h-4" />
                           </div>
                           <div>
-                            <h3 className="text-base font-bold text-white tracking-tight">{auto.name}</h3>
-                            <span className="text-[11px] text-surface-400 font-mono">
+                            <h3 className="text-base font-bold text-text-primary tracking-tight">{auto.name}</h3>
+                            <span className="text-[11px] text-text-secondary font-mono">
                               {trig?.type === "SCHEDULE" ? `Agendado: ${trig.config?.time || "08:00"}` : "Disparo Manual"}
                             </span>
                           </div>
@@ -386,13 +386,13 @@ export function AutomationsPage() {
                           <button
                             onClick={() => handleToggleActive(auto.id)}
                             title={auto.is_active ? "Pausar rotina" : "Ativar rotina"}
-                            className="p-1 text-surface-400 hover:text-white rounded transition-colors cursor-pointer text-xs"
+                            className="p-1 text-text-secondary hover:text-text-primary rounded transition-colors cursor-pointer text-xs"
                           >
                             {auto.is_active ? "Pausar" : "Ativar"}
                           </button>
                           <button
                             onClick={() => setDeleteId(auto.id)}
-                            className="p-1 text-surface-500 hover:text-red-400 rounded transition-colors cursor-pointer"
+                            className="p-1 text-text-muted hover:text-error rounded transition-colors cursor-pointer"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -400,7 +400,7 @@ export function AutomationsPage() {
                       </div>
 
                       {auto.description && (
-                        <p className="text-xs text-surface-300 mt-2 line-clamp-2 leading-relaxed">
+                        <p className="text-xs text-text-secondary mt-2 line-clamp-2 leading-relaxed">
                           {auto.description}
                         </p>
                       )}
@@ -408,19 +408,19 @@ export function AutomationsPage() {
                       {auto.actions && auto.actions.length > 0 && (
                         <div className="mt-3 space-y-1">
                           {auto.actions.map((act, i) => (
-                            <div key={i} className="text-[11px] text-surface-400 flex items-center gap-1.5">
+                            <div key={i} className="text-[11px] text-text-secondary flex items-center gap-1.5">
                               <span className="w-1.5 h-1.5 rounded-full bg-accent-400" />
-                              <span className="font-mono text-surface-300">{act.type}</span>
+                              <span className="font-mono text-text-secondary">{act.type}</span>
                             </div>
                           ))}
                         </div>
                       )}
                     </div>
 
-                    <div className="flex items-center justify-between pt-3 border-t border-surface-800/60">
-                      <div className="flex items-center gap-1.5 text-xs text-green-400">
+                    <div className="flex items-center justify-between pt-3 border-t border-border/60">
+                      <div className="flex items-center gap-1.5 text-xs text-success">
                         <ShieldCheck className="w-3.5 h-3.5" />
-                        <span className="text-[11px] text-surface-400">
+                        <span className="text-[11px] text-text-secondary">
                           {auto.is_active ? "Ativa" : "Pausada"}
                         </span>
                       </div>
@@ -446,22 +446,22 @@ export function AutomationsPage() {
         /* Templates Tab */
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {templates.map((tpl) => (
-            <div key={tpl.id} className="glass-card p-5 flex flex-col justify-between space-y-4 hover:border-accent-500/40 transition-all">
+            <div key={tpl.id} className="glass-card p-5 flex flex-col justify-between space-y-4 hover:border-accent/40 transition-all">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <div className="p-2 rounded-lg bg-accent-500/10 text-accent-400">
+                  <div className="p-2 rounded-lg bg-accent/10 text-accent-light">
                     <Sparkles className="w-4 h-4" />
                   </div>
-                  <Badge variant="outline" className="text-[10px] text-accent-400 border-accent-500/30">
+                  <Badge variant="outline" className="text-[10px] text-accent-light border-accent/30">
                     Risco: {tpl.risk_level}
                   </Badge>
                 </div>
-                <h3 className="text-base font-bold text-white tracking-tight">{tpl.name}</h3>
-                <p className="text-xs text-surface-400 leading-relaxed">{tpl.description}</p>
+                <h3 className="text-base font-bold text-text-primary tracking-tight">{tpl.name}</h3>
+                <p className="text-xs text-text-secondary leading-relaxed">{tpl.description}</p>
                 <div className="pt-2 space-y-1">
                   {tpl.actions.map((act, i) => (
-                    <div key={i} className="text-[11px] text-surface-300 flex items-center gap-1.5">
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <div key={i} className="text-[11px] text-text-secondary flex items-center gap-1.5">
+                      <Check className="w-3.5 h-3.5 text-success" />
                       <span>{act.type}</span>
                     </div>
                   ))}
@@ -479,7 +479,7 @@ export function AutomationsPage() {
         /* Executions Tab */
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="glass-card p-4 space-y-2">
-            <h3 className="text-xs font-bold text-surface-400 uppercase tracking-wider mb-2">
+            <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">
               Selecione a Rotina
             </h3>
             {automations.map((a) => (
@@ -488,8 +488,8 @@ export function AutomationsPage() {
                 onClick={() => handleSelectAutomation(a.id)}
                 className={`w-full text-left p-2.5 rounded-lg text-xs font-medium transition-all flex items-center justify-between cursor-pointer ${
                   selectedAutoId === a.id
-                    ? "bg-accent-500/20 text-accent-400 border border-accent-500/30"
-                    : "text-surface-300 hover:bg-surface-800/60 hover:text-white"
+                    ? "bg-accent/20 text-accent-light border border-accent/30"
+                    : "text-text-secondary hover:bg-surface-elevated/60 hover:text-text-primary"
                 }`}
               >
                 <span className="truncate">{a.name}</span>
@@ -499,17 +499,17 @@ export function AutomationsPage() {
           </div>
 
           <div className="lg:col-span-2 glass-card p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-surface-800 pb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Clock className="w-4 h-4 text-accent-400" />
-                Histórico & Auditoria de Execuções
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
+                <Clock className="w-4 h-4 text-accent-light" />
+                HistÃ³rico & Auditoria de ExecuÃ§Ãµes
               </h3>
               {selectedAutoId && (
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => loadExecutions(selectedAutoId)}
-                  className="h-7 px-2 text-xs gap-1 text-surface-400 hover:text-white"
+                  className="h-7 px-2 text-xs gap-1 text-text-secondary hover:text-text-primary"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   Atualizar
@@ -518,9 +518,9 @@ export function AutomationsPage() {
             </div>
 
             {executions.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center text-surface-500">
+              <div className="flex flex-col items-center justify-center py-12 text-center text-text-muted">
                 <FileText className="w-8 h-8 mb-2 opacity-30" />
-                <p className="text-xs">Nenhuma execução registrada para esta rotina.</p>
+                <p className="text-xs">Nenhuma execuÃ§Ã£o registrada para esta rotina.</p>
               </div>
             ) : (
               <div className="space-y-2.5 max-h-[460px] overflow-y-auto pr-1">
@@ -529,32 +529,32 @@ export function AutomationsPage() {
                   return (
                     <div
                       key={exec.id}
-                      className="p-3.5 rounded-lg border border-surface-800 bg-surface-900/60 space-y-2"
+                      className="p-3.5 rounded-lg border border-border bg-surface/60 space-y-2"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           {isSuccess ? (
-                            <CheckCircle2 className="w-4 h-4 text-green-400" />
+                            <CheckCircle2 className="w-4 h-4 text-success" />
                           ) : (
-                            <XCircle className="w-4 h-4 text-red-400" />
+                            <XCircle className="w-4 h-4 text-error" />
                           )}
-                          <span className="text-xs font-bold text-white capitalize">
-                            Status: {exec.status === "completed" ? "Concluído" : "Falhou"}
+                          <span className="text-xs font-bold text-text-primary capitalize">
+                            Status: {exec.status === "completed" ? "ConcluÃ­do" : "Falhou"}
                           </span>
                         </div>
-                        <span className="text-[11px] text-surface-400">
+                        <span className="text-[11px] text-text-secondary">
                           {formatDate(exec.started_at)}
                         </span>
                       </div>
 
                       {exec.log && (
-                        <pre className="text-[11px] font-mono bg-surface-950/80 p-2.5 rounded border border-surface-800/80 text-surface-300 overflow-x-auto whitespace-pre-wrap">
+                        <pre className="text-[11px] font-mono bg-background/80 p-2.5 rounded border border-border/80 text-text-secondary overflow-x-auto whitespace-pre-wrap">
                           {exec.log}
                         </pre>
                       )}
 
                       {exec.error_message && (
-                        <p className="text-xs text-red-400 bg-red-500/10 p-2 rounded border border-red-500/20">
+                        <p className="text-xs text-error bg-red-500/10 p-2 rounded border border-red-500/20">
                           Erro: {exec.error_message}
                         </p>
                       )}
@@ -571,38 +571,38 @@ export function AutomationsPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Assistente de Criação de Rotina"
+        title="Assistente de CriaÃ§Ã£o de Rotina"
         size="md"
       >
         <form onSubmit={handleSaveAutomation} className="space-y-4">
           <div>
-            <label className="text-xs font-semibold text-surface-300 mb-1.5 block">1. Nome da Rotina *</label>
+            <label className="text-xs font-semibold text-text-secondary mb-1.5 block">1. Nome da Rotina *</label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Ex: Rotina da Manhã, Iniciar Estudos..."
+              placeholder="Ex: Rotina da ManhÃ£, Iniciar Estudos..."
               required
             />
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-surface-300 mb-1.5 block">Descrição</label>
+            <label className="text-xs font-semibold text-text-secondary mb-1.5 block">DescriÃ§Ã£o</label>
             <Input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="O que esta automação realiza..."
+              placeholder="O que esta automaÃ§Ã£o realiza..."
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-surface-300 mb-1.5 block">2. Quando disparar?</label>
+              <label className="text-xs font-semibold text-text-secondary mb-1.5 block">2. Quando disparar?</label>
               <select
                 value={triggerType}
                 onChange={(e) => setTriggerType(e.target.value as any)}
-                className="w-full rounded-md border border-surface-700 bg-surface-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
+                className="w-full rounded-md border border-border bg-surface-elevated px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-500"
               >
-                <option value="SCHEDULE">Horário Agendado (Diário)</option>
+                <option value="SCHEDULE">HorÃ¡rio Agendado (DiÃ¡rio)</option>
                 <option value="MANUAL">Disparo Manual</option>
                 <option value="APP_START">Ao Iniciar o Resolva</option>
               </select>
@@ -610,7 +610,7 @@ export function AutomationsPage() {
 
             {triggerType === "SCHEDULE" && (
               <div>
-                <label className="text-xs font-semibold text-surface-300 mb-1.5 block">Horário (HH:MM)</label>
+                <label className="text-xs font-semibold text-text-secondary mb-1.5 block">HorÃ¡rio (HH:MM)</label>
                 <Input
                   type="time"
                   value={scheduleTime}
@@ -622,26 +622,26 @@ export function AutomationsPage() {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-surface-300 mb-1.5 block">3. O que executar?</label>
+            <label className="text-xs font-semibold text-text-secondary mb-1.5 block">3. O que executar?</label>
             <select
               value={actionType}
               onChange={(e) => setActionType(e.target.value as any)}
-              className="w-full rounded-md border border-surface-700 bg-surface-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
+              className="w-full rounded-md border border-border bg-surface-elevated px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-500"
             >
-              <option value="CREATE_NOTIFICATION">Enviar Notificação do Sistema</option>
+              <option value="CREATE_NOTIFICATION">Enviar NotificaÃ§Ã£o do Sistema</option>
               <option value="SHOW_AGENT_MESSAGE">Exibir Mensagem do Resolva Agent</option>
               <option value="OPEN_APPLICATION">Abrir Aplicativo Autorizado (Windows)</option>
-              <option value="START_STUDY_SESSION">Iniciar Sessão de Estudo / Pomodoro</option>
+              <option value="START_STUDY_SESSION">Iniciar SessÃ£o de Estudo / Pomodoro</option>
             </select>
           </div>
 
           {actionType === "OPEN_APPLICATION" && (
-            <div className="space-y-2 p-3 rounded-lg border border-surface-800 bg-surface-900/40">
-              <label className="text-xs font-semibold text-surface-300 mb-1 block">Aplicativo da Whitelist</label>
+            <div className="space-y-2 p-3 rounded-lg border border-border bg-surface/40">
+              <label className="text-xs font-semibold text-text-secondary mb-1 block">Aplicativo da Whitelist</label>
               <select
                 value={appName}
                 onChange={(e) => setAppName(e.target.value)}
-                className="w-full rounded-md border border-surface-700 bg-surface-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
+                className="w-full rounded-md border border-border bg-surface-elevated px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-500"
               >
                 <option value="vscode">VS Code (Visual Studio Code)</option>
                 <option value="chrome">Google Chrome</option>
@@ -653,8 +653,8 @@ export function AutomationsPage() {
           )}
 
           {actionType === "START_STUDY_SESSION" && (
-            <div className="p-3 rounded-lg border border-surface-800 bg-surface-900/40">
-              <label className="text-xs font-semibold text-surface-300 mb-1 block">Duração em Minutos</label>
+            <div className="p-3 rounded-lg border border-border bg-surface/40">
+              <label className="text-xs font-semibold text-text-secondary mb-1 block">DuraÃ§Ã£o em Minutos</label>
               <Input
                 type="number"
                 min={5}
@@ -667,24 +667,24 @@ export function AutomationsPage() {
           )}
 
           {(actionType === "CREATE_NOTIFICATION" || actionType === "SHOW_AGENT_MESSAGE") && (
-            <div className="space-y-3 p-3 rounded-lg border border-surface-800 bg-surface-900/40">
+            <div className="space-y-3 p-3 rounded-lg border border-border bg-surface/40">
               <div>
-                <label className="text-xs font-semibold text-surface-300 mb-1 block">Título</label>
+                <label className="text-xs font-semibold text-text-secondary mb-1 block">TÃ­tulo</label>
                 <Input value={notifTitle} onChange={(e) => setNotifTitle(e.target.value)} required />
               </div>
               <div>
-                <label className="text-xs font-semibold text-surface-300 mb-1 block">Mensagem</label>
+                <label className="text-xs font-semibold text-text-secondary mb-1 block">Mensagem</label>
                 <Input value={notifMsg} onChange={(e) => setNotifMsg(e.target.value)} required />
               </div>
             </div>
           )}
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-surface-800">
+          <div className="flex justify-end gap-3 pt-3 border-t border-border">
             <Button variant="ghost" type="button" onClick={() => setIsModalOpen(false)}>
               Cancelar
             </Button>
             <Button type="submit" isLoading={isSubmitting}>
-              Ativar Automação
+              Ativar AutomaÃ§Ã£o
             </Button>
           </div>
         </form>
@@ -695,8 +695,8 @@ export function AutomationsPage() {
         isOpen={deleteId !== null}
         onClose={() => setDeleteId(null)}
         onConfirm={handleDelete}
-        title="Excluir Automação"
-        message="Tem certeza que deseja excluir esta rotina de automação? O histórico associado será preservado."
+        title="Excluir AutomaÃ§Ã£o"
+        message="Tem certeza que deseja excluir esta rotina de automaÃ§Ã£o? O histÃ³rico associado serÃ¡ preservado."
         confirmLabel="Excluir"
         variant="destructive"
       />

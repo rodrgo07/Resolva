@@ -45,7 +45,7 @@ export function QuickTaskModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
     <Modal isOpen={isOpen} onClose={onClose} title="Nova Tarefa Rápida" size="md">
       <form onSubmit={handleCreate} className="space-y-4">
         <div>
-          <label className="block text-xs font-semibold text-surface-400 mb-1">O que precisa ser feito?</label>
+          <label className="block text-xs font-semibold text-text-secondary mb-1">O que precisa ser feito?</label>
           <Input 
             autoFocus
             placeholder="Ex: Comprar leite, Enviar relatório..."
@@ -56,9 +56,9 @@ export function QuickTaskModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
 
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <label className="block text-xs font-semibold text-surface-400 mb-1">Prioridade</label>
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Prioridade</label>
             <select
-              className="w-full h-10 px-3 rounded-lg bg-surface-900 border border-surface-700 text-white text-xs focus:outline-none focus:border-accent-500"
+              className="w-full h-10 px-3 rounded-lg bg-surface border border-border text-text-primary text-xs focus:outline-none focus:border-accent"
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
             >
@@ -70,7 +70,7 @@ export function QuickTaskModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-surface-400 mb-1">Categoria</label>
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Categoria</label>
             <Input 
               value={category}
               onChange={(e) => setCategory(e.target.value)}
@@ -80,7 +80,7 @@ export function QuickTaskModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-surface-400 mb-1">Prazo</label>
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Prazo</label>
             <Input 
               type="date"
               value={dueDate}
@@ -90,11 +90,11 @@ export function QuickTaskModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
           </div>
         </div>
 
-        <div className="flex justify-end space-x-2 pt-2 border-t border-surface-800">
+        <div className="flex justify-end space-x-2 pt-2 border-t border-border">
           <Button type="button" variant="ghost" onClick={onClose} disabled={isLoading}>
             Cancelar
           </Button>
-          <Button type="submit" disabled={isLoading} className="bg-accent-600 hover:bg-accent-500">
+          <Button type="submit" disabled={isLoading} className="bg-accent hover:bg-accent">
             {isLoading ? "Criando..." : "Criar Tarefa"}
           </Button>
         </div>
@@ -142,7 +142,7 @@ export function QuickExpenseModal({ isOpen, onClose }: { isOpen: boolean; onClos
     <Modal isOpen={isOpen} onClose={onClose} title="Novo Lançamento Financeiro" size="md">
       <form onSubmit={handleCreate} className="space-y-4">
         <div>
-          <label className="block text-xs font-semibold text-surface-400 mb-1">Descrição</label>
+          <label className="block text-xs font-semibold text-text-secondary mb-1">Descrição</label>
           <Input 
             autoFocus
             placeholder="Ex: Almoço executivo, Uber, Supermercado..."
@@ -153,9 +153,9 @@ export function QuickExpenseModal({ isOpen, onClose }: { isOpen: boolean; onClos
 
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <label className="block text-xs font-semibold text-surface-400 mb-1">Tipo</label>
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Tipo</label>
             <select
-              className="w-full h-10 px-3 rounded-lg bg-surface-900 border border-surface-700 text-white text-xs focus:outline-none focus:border-accent-500"
+              className="w-full h-10 px-3 rounded-lg bg-surface border border-border text-text-primary text-xs focus:outline-none focus:border-accent"
               value={type}
               onChange={(e) => setType(e.target.value as any)}
             >
@@ -165,7 +165,7 @@ export function QuickExpenseModal({ isOpen, onClose }: { isOpen: boolean; onClos
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-surface-400 mb-1">Valor (R$)</label>
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Valor (R$)</label>
             <Input 
               type="number"
               step="0.01"
@@ -177,7 +177,7 @@ export function QuickExpenseModal({ isOpen, onClose }: { isOpen: boolean; onClos
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-surface-400 mb-1">Data</label>
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Data</label>
             <Input 
               type="date"
               value={date}
@@ -187,7 +187,7 @@ export function QuickExpenseModal({ isOpen, onClose }: { isOpen: boolean; onClos
           </div>
         </div>
 
-        <div className="flex justify-end space-x-2 pt-2 border-t border-surface-800">
+        <div className="flex justify-end space-x-2 pt-2 border-t border-border">
           <Button type="button" variant="ghost" onClick={onClose} disabled={isLoading}>
             Cancelar
           </Button>
@@ -248,7 +248,7 @@ export function QuickEventModal({ isOpen, onClose }: { isOpen: boolean; onClose:
     <Modal isOpen={isOpen} onClose={onClose} title="Novo Compromisso" size="md">
       <form onSubmit={handleCreate} className="space-y-4">
         <div>
-          <label className="block text-xs font-semibold text-surface-400 mb-1">Título</label>
+          <label className="block text-xs font-semibold text-text-secondary mb-1">Título</label>
           <Input 
             autoFocus
             placeholder="Ex: Reunião com equipe, Alinhamento de projeto..."
@@ -259,7 +259,7 @@ export function QuickEventModal({ isOpen, onClose }: { isOpen: boolean; onClose:
 
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <label className="block text-xs font-semibold text-surface-400 mb-1">Data</label>
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Data</label>
             <Input 
               type="date"
               value={date}
@@ -269,7 +269,7 @@ export function QuickEventModal({ isOpen, onClose }: { isOpen: boolean; onClose:
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-surface-400 mb-1">Horário</label>
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Horário</label>
             <Input 
               type="time"
               value={time}
@@ -280,7 +280,7 @@ export function QuickEventModal({ isOpen, onClose }: { isOpen: boolean; onClose:
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-surface-400 mb-1">Duração (horas)</label>
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Duração (horas)</label>
             <Input 
               type="number"
               step="0.5"
@@ -298,18 +298,18 @@ export function QuickEventModal({ isOpen, onClose }: { isOpen: boolean; onClose:
             id="allDayCheck"
             checked={allDay}
             onChange={(e) => setAllDay(e.target.checked)}
-            className="rounded border-surface-700 bg-surface-900 text-accent-500"
+            className="rounded border-border bg-surface text-accent"
           />
-          <label htmlFor="allDayCheck" className="text-xs text-surface-300 cursor-pointer">
+          <label htmlFor="allDayCheck" className="text-xs text-text-secondary cursor-pointer">
             Dia inteiro
           </label>
         </div>
 
-        <div className="flex justify-end space-x-2 pt-2 border-t border-surface-800">
+        <div className="flex justify-end space-x-2 pt-2 border-t border-border">
           <Button type="button" variant="ghost" onClick={onClose} disabled={isLoading}>
             Cancelar
           </Button>
-          <Button type="submit" disabled={isLoading} className="bg-purple-600 hover:bg-purple-500">
+          <Button type="submit" disabled={isLoading} className="bg-accent hover:bg-accent">
             {isLoading ? "Salvando..." : "Salvar Evento"}
           </Button>
         </div>
@@ -386,9 +386,9 @@ export function QuickPomodoroModal({ isOpen, onClose }: { isOpen: boolean; onClo
     <Modal isOpen={isOpen} onClose={onClose} title="Sessão Pomodoro Rápida" size="sm">
       <div className="flex flex-col items-center py-4 space-y-5">
         <div className="w-full">
-          <label className="block text-xs font-semibold text-surface-400 mb-1">Matéria / Disciplina</label>
+          <label className="block text-xs font-semibold text-text-secondary mb-1">Matéria / Disciplina</label>
           <select
-            className="w-full h-10 px-3 rounded-lg bg-surface-900 border border-surface-700 text-white text-xs focus:outline-none focus:border-accent-500"
+            className="w-full h-10 px-3 rounded-lg bg-surface border border-border text-text-primary text-xs focus:outline-none focus:border-accent"
             value={selectedSubjectId || ""}
             onChange={(e) => setSelectedSubjectId(Number(e.target.value))}
             disabled={isRunning}
@@ -399,17 +399,17 @@ export function QuickPomodoroModal({ isOpen, onClose }: { isOpen: boolean; onClo
           </select>
         </div>
 
-        <div className="text-5xl font-mono font-bold tracking-widest text-accent-400 py-4">
+        <div className="text-5xl font-mono font-bold tracking-widest text-accent-light py-4">
           {formatTimer(secondsRemaining)}
         </div>
 
         <div className="flex items-center space-x-3">
           {!isRunning ? (
-            <Button onClick={handleStart} className="bg-accent-600 hover:bg-accent-500 px-6">
+            <Button onClick={handleStart} className="bg-accent hover:bg-accent px-6">
               <Play className="h-4 w-4 mr-2" /> Iniciar
             </Button>
           ) : (
-            <Button onClick={handlePause} variant="outline" className="px-6 border-surface-700">
+            <Button onClick={handlePause} variant="outline" className="px-6 border-border">
               <Pause className="h-4 w-4 mr-2" /> Pausar
             </Button>
           )}

@@ -26,7 +26,7 @@ export function Tabs({
 
 export function TabsList({ className, children }: { className?: string, children: React.ReactNode }) {
   return (
-    <div className={cn("flex items-center gap-4 border-b border-surface-800", className)}>
+    <div className={cn("flex items-center gap-4 border-b border-border", className)}>
       {children}
     </div>
   )
@@ -48,14 +48,14 @@ export function TabsTrigger({
     <button
       onClick={() => setActiveTab(value)}
       className={cn(
-        "relative pb-3 text-sm font-medium transition-colors hover:text-white",
-        isActive ? "text-accent-500" : "text-surface-400",
+        "relative pb-3 text-sm font-medium transition-colors hover:text-text-primary",
+        isActive ? "text-accent" : "text-text-secondary",
         className
       )}
     >
       {children}
       {isActive && (
-        <div className="absolute bottom-0 left-0 h-0.5 w-full bg-accent-500 rounded-t-full" />
+        <div className="absolute bottom-0 left-0 h-0.5 w-full bg-accent rounded-t-full" />
       )}
     </button>
   )

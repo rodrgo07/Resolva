@@ -189,10 +189,10 @@ export function FinancesPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-800/40 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Finanças</h1>
-          <p className="text-sm text-surface-400">
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">Finanças</h1>
+          <p className="text-sm text-text-secondary">
             Controle receitas, despesas, orçamentos e evolução financeira.
           </p>
         </div>
@@ -206,43 +206,43 @@ export function FinancesPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="glass-card p-5 border-l-4 border-l-green-500">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-surface-400 uppercase tracking-wider">Total Recebido</span>
-            <div className="p-1.5 rounded-lg bg-green-500/10 text-green-400">
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Total Recebido</span>
+            <div className="p-1.5 rounded-lg bg-green-500/10 text-success">
               <ArrowUpRight className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-green-400 tracking-tight">
+          <p className="text-2xl font-bold text-success tracking-tight">
             {formatCurrency(summary.total_income)}
           </p>
         </div>
 
         <div className="glass-card p-5 border-l-4 border-l-red-500">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-surface-400 uppercase tracking-wider">Total Gasto</span>
-            <div className="p-1.5 rounded-lg bg-red-500/10 text-red-400">
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Total Gasto</span>
+            <div className="p-1.5 rounded-lg bg-red-500/10 text-error">
               <ArrowDownRight className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-red-400 tracking-tight">
+          <p className="text-2xl font-bold text-error tracking-tight">
             {formatCurrency(summary.total_expense)}
           </p>
         </div>
 
         <div className="glass-card p-5 border-l-4 border-l-accent-500">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-surface-400 uppercase tracking-wider">Saldo Líquido</span>
-            <div className="p-1.5 rounded-lg bg-accent-500/10 text-accent-400">
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Saldo Líquido</span>
+            <div className="p-1.5 rounded-lg bg-accent/10 text-accent-light">
               <Wallet className="w-4 h-4" />
             </div>
           </div>
-          <p className={`text-2xl font-bold tracking-tight ${summary.balance >= 0 ? "text-accent-400" : "text-red-400"}`}>
+          <p className={`text-2xl font-bold tracking-tight ${summary.balance >= 0 ? "text-accent-light" : "text-error"}`}>
             {formatCurrency(summary.balance)}
           </p>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-surface-800/60 pb-3">
+      <div className="flex items-center gap-2 border-b border-border/60 pb-3">
         {[
           { key: "transactions", label: "Lançamentos", icon: Layers },
           { key: "reports", label: "Relatórios & Gráficos", icon: PieChartIcon },
@@ -255,8 +255,8 @@ export function FinancesPage() {
               onClick={() => setActiveTab(tab.key as any)}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 activeTab === tab.key
-                  ? "bg-accent-500/20 text-accent-400 border border-accent-500/30"
-                  : "text-surface-400 hover:text-surface-200 hover:bg-surface-800/60"
+                  ? "bg-accent/20 text-accent-light border border-accent/30"
+                  : "text-text-secondary hover:text-text-primary hover:bg-surface-elevated/60"
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -274,7 +274,7 @@ export function FinancesPage() {
           {/* Subfilters */}
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-surface-500 ml-1" />
+              <Filter className="w-4 h-4 text-text-muted ml-1" />
               {[
                 { key: "all", label: "Todos" },
                 { key: "expense", label: "Despesas" },
@@ -285,26 +285,26 @@ export function FinancesPage() {
                   onClick={() => setFilterType(f.key as any)}
                   className={`px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
                     filterType === f.key
-                      ? "bg-surface-800 text-white border border-surface-700"
-                      : "text-surface-400 hover:text-surface-200"
+                      ? "bg-surface-elevated text-text-primary border border-border"
+                      : "text-text-secondary hover:text-text-primary"
                   }`}
                 >
                   {f.label}
                 </button>
               ))}
             </div>
-            <span className="text-xs text-surface-500">
+            <span className="text-xs text-text-muted">
               {filteredTransactions.length} registro(s) encontrado(s)
             </span>
           </div>
 
           {filteredTransactions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center glass-card border-dashed">
-              <div className="p-4 rounded-full bg-surface-800/50 mb-3 text-surface-500">
+              <div className="p-4 rounded-full bg-surface-elevated/50 mb-3 text-text-muted">
                 <Wallet className="w-8 h-8" />
               </div>
-              <p className="text-sm font-semibold text-surface-200">Nenhum lançamento no período</p>
-              <p className="text-xs text-surface-400 mt-1 mb-4">Adicione suas primeiras receitas ou despesas.</p>
+              <p className="text-sm font-semibold text-text-primary">Nenhum lançamento no período</p>
+              <p className="text-xs text-text-secondary mt-1 mb-4">Adicione suas primeiras receitas ou despesas.</p>
               <Button onClick={handleOpenCreate} size="sm">Registrar Lançamento</Button>
             </div>
           ) : (
@@ -314,39 +314,39 @@ export function FinancesPage() {
                 return (
                   <div
                     key={tx.id}
-                    className="glass-card p-3.5 flex items-center justify-between gap-4 hover:border-surface-600 transition-colors"
+                    className="glass-card p-3.5 flex items-center justify-between gap-4 hover:border-border-strong transition-colors"
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
-                      <div className={`p-2 rounded-lg shrink-0 ${isIncome ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400"}`}>
+                      <div className={`p-2 rounded-lg shrink-0 ${isIncome ? "bg-green-500/10 text-success" : "bg-red-500/10 text-error"}`}>
                         {isIncome ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-white truncate">{tx.description}</span>
+                          <span className="text-sm font-semibold text-text-primary truncate">{tx.description}</span>
                           {tx.category && (
-                            <Badge variant="outline" className="text-[10px] py-0 px-1.5 border-surface-700">
+                            <Badge variant="outline" className="text-[10px] py-0 px-1.5 border-border">
                               {tx.category.name}
                             </Badge>
                           )}
                         </div>
-                        <div className="flex items-center gap-3 text-[11px] text-surface-400 mt-0.5">
+                        <div className="flex items-center gap-3 text-[11px] text-text-secondary mt-0.5">
                           <span className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3 text-surface-500" />
+                            <Calendar className="w-3 h-3 text-text-muted" />
                             {formatDate(tx.date)}
                           </span>
-                          {tx.notes && <span className="truncate max-w-[200px] text-surface-500">Obs: {tx.notes}</span>}
+                          {tx.notes && <span className="truncate max-w-[200px] text-text-muted">Obs: {tx.notes}</span>}
                         </div>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-4 shrink-0">
-                      <span className={`text-sm font-bold tracking-tight ${isIncome ? "text-green-400" : "text-red-400"}`}>
+                      <span className={`text-sm font-bold tracking-tight ${isIncome ? "text-success" : "text-error"}`}>
                         {isIncome ? "+ " : "- "}
                         {formatCurrency(tx.amount)}
                       </span>
                       <button
                         onClick={() => setDeleteId(tx.id)}
-                        className="p-1 text-surface-500 hover:text-red-400 transition-colors cursor-pointer rounded"
+                        className="p-1 text-text-muted hover:text-error transition-colors cursor-pointer rounded"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -361,12 +361,12 @@ export function FinancesPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Pie Chart: Categorias */}
           <div className="glass-card p-5">
-            <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-              <PieChartIcon className="w-4 h-4 text-accent-400" />
+            <h3 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2">
+              <PieChartIcon className="w-4 h-4 text-accent-light" />
               Gastos por Categoria
             </h3>
             {chartData.length === 0 ? (
-              <div className="h-64 flex items-center justify-center text-surface-500 text-xs">
+              <div className="h-64 flex items-center justify-center text-text-muted text-xs">
                 Nenhum dado de despesas para exibir no gráfico.
               </div>
             ) : (
@@ -397,12 +397,12 @@ export function FinancesPage() {
             {/* Category Legend */}
             <div className="mt-4 grid grid-cols-2 gap-2">
               {breakdown.map((item, i) => (
-                <div key={i} className="flex items-center justify-between text-xs py-1 border-b border-surface-800/40">
+                <div key={i} className="flex items-center justify-between text-xs py-1 border-b border-border/40">
                   <div className="flex items-center gap-2 truncate">
                     <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
-                    <span className="text-surface-300 truncate">{item.category_name}</span>
+                    <span className="text-text-secondary truncate">{item.category_name}</span>
                   </div>
-                  <span className="font-semibold text-white ml-2">{formatCurrency(item.total_amount)}</span>
+                  <span className="font-semibold text-text-primary ml-2">{formatCurrency(item.total_amount)}</span>
                 </div>
               ))}
             </div>
@@ -410,8 +410,8 @@ export function FinancesPage() {
 
           {/* Bar Chart: Visão Geral */}
           <div className="glass-card p-5">
-            <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-green-400" />
+            <h3 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-success" />
               Comparativo Receitas vs Despesas
             </h3>
             <div className="h-64 w-full pt-4">
@@ -441,7 +441,7 @@ export function FinancesPage() {
         /* Budgets Tab */
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-white">Metas e Limites Orçamentários</h3>
+            <h3 className="text-sm font-semibold text-text-primary">Metas e Limites Orçamentários</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -457,12 +457,12 @@ export function FinancesPage() {
                 <div key={b.id} className="glass-card p-5 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="p-2 rounded-lg bg-accent-500/10 text-accent-400">
+                      <div className="p-2 rounded-lg bg-accent/10 text-accent-light">
                         <Tag className="w-4 h-4" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-semibold text-white">{cat?.name || "Geral"}</h4>
-                        <span className="text-[11px] text-surface-400 capitalize">{b.period}</span>
+                        <h4 className="text-sm font-semibold text-text-primary">{cat?.name || "Geral"}</h4>
+                        <span className="text-[11px] text-text-secondary capitalize">{b.period}</span>
                       </div>
                     </div>
                     <Badge variant={percentage > 85 ? "error" : percentage > 60 ? "warning" : "success"}>
@@ -471,19 +471,19 @@ export function FinancesPage() {
                   </div>
 
                   {/* Progress Bar */}
-                  <div className="w-full bg-surface-800 rounded-full h-2 overflow-hidden">
+                  <div className="w-full bg-surface-elevated rounded-full h-2 overflow-hidden">
                     <div
                       className={`h-full transition-all duration-300 ${
-                        percentage > 85 ? "bg-red-500" : percentage > 60 ? "bg-yellow-500" : "bg-accent-500"
+                        percentage > 85 ? "bg-red-500" : percentage > 60 ? "bg-yellow-500" : "bg-accent"
                       }`}
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
 
-                  <div className="flex items-center justify-between text-xs text-surface-400 pt-1">
-                    <span>Gasto: <strong className="text-surface-200">{formatCurrency(spentForCat)}</strong></span>
-                    <span>Limite: <strong className="text-white">{formatCurrency(b.limit_amount)}</strong></span>
-                    <span>Restante: <strong className="text-green-400">{formatCurrency(remaining)}</strong></span>
+                  <div className="flex items-center justify-between text-xs text-text-secondary pt-1">
+                    <span>Gasto: <strong className="text-text-primary">{formatCurrency(spentForCat)}</strong></span>
+                    <span>Limite: <strong className="text-text-primary">{formatCurrency(b.limit_amount)}</strong></span>
+                    <span>Restante: <strong className="text-success">{formatCurrency(remaining)}</strong></span>
                   </div>
                 </div>
               );
@@ -506,8 +506,8 @@ export function FinancesPage() {
               onClick={() => setTxType("expense")}
               className={`p-3 rounded-lg border text-sm font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer ${
                 txType === "expense"
-                  ? "bg-red-500/10 border-red-500/40 text-red-400 font-bold"
-                  : "border-surface-700 bg-surface-800/40 text-surface-400"
+                  ? "bg-red-500/10 border-red-500/40 text-error font-bold"
+                  : "border-border bg-surface-elevated/40 text-text-secondary"
               }`}
             >
               <TrendingDown className="w-4 h-4" />
@@ -518,8 +518,8 @@ export function FinancesPage() {
               onClick={() => setTxType("income")}
               className={`p-3 rounded-lg border text-sm font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer ${
                 txType === "income"
-                  ? "bg-green-500/10 border-green-500/40 text-green-400 font-bold"
-                  : "border-surface-700 bg-surface-800/40 text-surface-400"
+                  ? "bg-green-500/10 border-green-500/40 text-success font-bold"
+                  : "border-border bg-surface-elevated/40 text-text-secondary"
               }`}
             >
               <TrendingUp className="w-4 h-4" />
@@ -528,7 +528,7 @@ export function FinancesPage() {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-surface-300 mb-1.5 block">Valor (R$) *</label>
+            <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Valor (R$) *</label>
             <Input
               type="number"
               step="0.01"
@@ -540,7 +540,7 @@ export function FinancesPage() {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-surface-300 mb-1.5 block">Descrição *</label>
+            <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Descrição *</label>
             <Input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -551,11 +551,11 @@ export function FinancesPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-surface-300 mb-1.5 block">Categoria</label>
+              <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Categoria</label>
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : "")}
-                className="w-full rounded-md border border-surface-700 bg-surface-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
+                className="w-full rounded-md border border-border bg-surface-elevated px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-500"
               >
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -566,7 +566,7 @@ export function FinancesPage() {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-surface-300 mb-1.5 block">Data</label>
+              <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Data</label>
               <Input
                 type="date"
                 value={txDate}
@@ -577,7 +577,7 @@ export function FinancesPage() {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-surface-300 mb-1.5 block">Observações (opcional)</label>
+            <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Observações (opcional)</label>
             <Input
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -585,7 +585,7 @@ export function FinancesPage() {
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-surface-800">
+          <div className="flex justify-end gap-3 pt-3 border-t border-border">
             <Button variant="ghost" type="button" onClick={() => setIsFormOpen(false)}>
               Cancelar
             </Button>

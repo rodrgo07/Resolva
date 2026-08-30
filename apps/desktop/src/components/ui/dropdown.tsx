@@ -64,7 +64,7 @@ export function DropdownContent({ children, className, align = "end" }: { childr
   return (
     <div 
       className={cn(
-        "absolute z-50 mt-2 min-w-[8rem] overflow-hidden rounded-md border border-surface-700 bg-surface-900/95 glass-card p-1 text-white shadow-md animate-slide-up",
+        "absolute z-50 mt-2 min-w-[8rem] overflow-hidden rounded-md border border-border bg-surface/95 glass-card p-1 text-text-primary shadow-md animate-slide-up",
         align === "end" ? "right-0" : "left-0",
         className
       )}
@@ -96,7 +96,7 @@ export function DropdownItem({
         setIsOpen(false)
       }}
       className={cn(
-        "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-surface-800 focus:bg-surface-800 disabled:pointer-events-none disabled:opacity-50",
+        "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-surface-elevated focus:bg-surface-elevated disabled:pointer-events-none disabled:opacity-50",
         className
       )}
     >
@@ -106,5 +106,5 @@ export function DropdownItem({
 }
 
 export function DropdownSeparator({ className }: { className?: string }) {
-  return <div className={cn("-mx-1 my-1 h-px bg-surface-800", className)} />
+  return <div className={cn("-mx-1 my-1 h-px bg-surface-elevated", className)} />
 }

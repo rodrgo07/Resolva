@@ -41,24 +41,24 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           {toasts.map((t) => (
             <div
               key={t.id}
-              className="relative overflow-hidden rounded-lg border border-surface-700 bg-surface-900/90 glass-card p-4 shadow-lg animate-slide-in-right"
+              className="relative overflow-hidden rounded-lg border border-border bg-surface/90 glass-card p-4 shadow-lg animate-slide-in-right"
             >
               <div className="flex gap-3">
                 <div className="mt-0.5">
-                  {t.type === "success" && <CheckCircle className="h-5 w-5 text-green-500" />}
-                  {t.type === "error" && <XCircle className="h-5 w-5 text-red-500" />}
-                  {t.type === "warning" && <AlertTriangle className="h-5 w-5 text-yellow-500" />}
-                  {t.type === "info" && <Info className="h-5 w-5 text-blue-500" />}
+                  {t.type === "success" && <CheckCircle className="h-5 w-5 text-success" />}
+                  {t.type === "error" && <XCircle className="h-5 w-5 text-error" />}
+                  {t.type === "warning" && <AlertTriangle className="h-5 w-5 text-warning" />}
+                  {t.type === "info" && <Info className="h-5 w-5 text-info" />}
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-medium text-white">{t.title}</h3>
+                  <h3 className="font-medium text-text-primary">{t.title}</h3>
                   {t.description && (
-                    <p className="mt-1 text-sm text-surface-300">{t.description}</p>
+                    <p className="mt-1 text-sm text-text-secondary">{t.description}</p>
                   )}
                 </div>
                 <button
                   onClick={() => removeToast(t.id)}
-                  className="text-surface-400 hover:text-white"
+                  className="text-text-secondary hover:text-text-primary"
                 >
                   <X className="h-4 w-4" />
                 </button>

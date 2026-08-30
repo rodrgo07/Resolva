@@ -126,13 +126,13 @@ export function EmailsPage() {
       const res = await api.post<{ authorization_url: string; state: string }>(`/api/emails/connect/${providerName}/init`);
       if (res?.authorization_url) {
         window.open(res.authorization_url, "_blank");
-        toast({ title: `Navegador aberto para autenticaÁ„o ${providerName === "gmail" ? "Google" : "Microsoft"}`, type: "info" });
+        toast({ title: `Navegador aberto para autentica√ß√£o ${providerName === "gmail" ? "Google" : "Microsoft"}`, type: "info" });
       }
     } catch {
       // Mock account fallback para testes locais
       try {
         await api.post(`/api/emails/connect/mock?provider=${providerName}`);
-        toast({ title: `Conta ${providerName.toUpperCase()} de demonstraÁ„o conectada!`, type: "success" });
+        toast({ title: `Conta ${providerName.toUpperCase()} de demonstra√ß√£o conectada!`, type: "success" });
         await loadData();
       } catch {
         toast({ title: `Erro ao conectar conta ${providerName}`, type: "error" });
@@ -148,7 +148,7 @@ export function EmailsPage() {
       toast({ title: "Caixa de entrada sincronizada com sucesso!", type: "success" });
       await loadData();
     } catch {
-      toast({ title: "N„o foi possÌvel sincronizar. Os e-mails locais continuam disponÌveis.", type: "warning" });
+      toast({ title: "N√£o foi poss√≠vel sincronizar. Os e-mails locais continuam dispon√≠veis.", type: "warning" });
     } finally {
       setIsSyncing(false);
     }
@@ -161,7 +161,7 @@ export function EmailsPage() {
       if (selectedEmail?.id === email.id) {
         setSelectedEmail({ ...selectedEmail, is_read: isRead });
       }
-      toast({ title: isRead ? "Marcado como lido" : "Marcado como n„o lido", type: "info" });
+      toast({ title: isRead ? "Marcado como lido" : "Marcado como n√£o lido", type: "info" });
     } catch {
       toast({ title: "Erro ao atualizar status do email", type: "error" });
     }
@@ -248,12 +248,12 @@ export function EmailsPage() {
     switch (cls?.toUpperCase()) {
       case "CRITICAL":
       case "URGENTE":
-        return <Badge variant="error">CrÌtico</Badge>;
+        return <Badge variant="error">Cr√≠tico</Badge>;
       case "IMPORTANT":
       case "IMPORTANTE":
         return <Badge variant="warning">Importante</Badge>;
       case "NEWSLETTER":
-        return <Badge variant="outline" className="text-surface-400 border-surface-700">Newsletter</Badge>;
+        return <Badge variant="outline" className="text-text-secondary border-border">Newsletter</Badge>;
       case "NORMAL":
         return <Badge variant="secondary">Normal</Badge>;
       default:
@@ -264,33 +264,33 @@ export function EmailsPage() {
   const getProviderTag = (provider?: string) => {
     const p = provider?.toLowerCase();
     if (p === "gmail") {
-      return <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">Gmail</span>;
+      return <span className="text-[10px] font-bold text-error bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">Gmail</span>;
     }
     if (p === "outlook" || p === "microsoft") {
-      return <span className="text-[10px] font-bold text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">Outlook</span>;
+      return <span className="text-[10px] font-bold text-info bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">Outlook</span>;
     }
-    return <span className="text-[10px] font-bold text-surface-400 bg-surface-800 px-1.5 py-0.5 rounded">Local</span>;
+    return <span className="text-[10px] font-bold text-text-secondary bg-surface-elevated px-1.5 py-0.5 rounded">Local</span>;
   };
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header & Accounts Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-800/40 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Emails & Triagem IA</h1>
-          <p className="text-sm text-surface-400">
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">Emails & Triagem IA</h1>
+          <p className="text-sm text-text-secondary">
             Caixa de entrada unificada (Gmail + Outlook) com triagem inteligente e privacidade local.
           </p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           {accounts.map((acc) => (
-            <div key={acc.id} className="flex items-center gap-2 bg-surface-900/80 border border-surface-800 px-3 py-1.5 rounded-lg text-xs">
+            <div key={acc.id} className="flex items-center gap-2 bg-surface/80 border border-border px-3 py-1.5 rounded-lg text-xs">
               <span className={`w-2 h-2 rounded-full ${acc.provider === 'gmail' ? 'bg-red-400' : 'bg-blue-400'} animate-pulse`}></span>
-              <span className="text-surface-300 font-medium">{acc.email_address}</span>
+              <span className="text-text-secondary font-medium">{acc.email_address}</span>
               <button 
                 onClick={() => handleDisconnect(acc.id)} 
                 title="Desconectar conta"
-                className="text-surface-500 hover:text-red-400 ml-1 cursor-pointer transition-colors"
+                className="text-text-muted hover:text-error ml-1 cursor-pointer transition-colors"
               >
                 <Unlink className="w-3.5 h-3.5" />
               </button>
@@ -303,7 +303,7 @@ export function EmailsPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => handleConnectProvider("gmail")}
-                className="gap-1.5 border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs"
+                className="gap-1.5 border-red-500/30 text-error hover:bg-red-500/10 text-xs"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 + Gmail
@@ -314,7 +314,7 @@ export function EmailsPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => handleConnectProvider("outlook")}
-                className="gap-1.5 border-blue-500/30 text-blue-400 hover:bg-blue-500/10 text-xs"
+                className="gap-1.5 border-blue-500/30 text-info hover:bg-blue-500/10 text-xs"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 + Outlook
@@ -326,7 +326,7 @@ export function EmailsPage() {
             variant="outline"
             isLoading={isSyncing}
             onClick={handleSyncEmails}
-            className="gap-2 border-surface-700 hover:text-white"
+            className="gap-2 border-border hover:text-text-primary"
           >
             <RefreshCw className="w-4 h-4" />
             Sincronizar
@@ -338,7 +338,7 @@ export function EmailsPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="glass-card p-4 border-l-4 border-l-orange-500">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-semibold text-surface-400 uppercase tracking-wider">N„o Lidos</span>
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">N√£o Lidos</span>
             <Inbox className="w-4 h-4 text-orange-400" />
           </div>
           <p className="text-2xl font-bold text-orange-400 tracking-tight">
@@ -348,30 +348,30 @@ export function EmailsPage() {
 
         <div className="glass-card p-4 border-l-4 border-l-red-500">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-semibold text-surface-400 uppercase tracking-wider">CrÌticos (Urgentes)</span>
-            <AlertCircle className="w-4 h-4 text-red-400" />
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Cr√≠ticos (Urgentes)</span>
+            <AlertCircle className="w-4 h-4 text-error" />
           </div>
-          <p className="text-2xl font-bold text-red-400 tracking-tight">
+          <p className="text-2xl font-bold text-error tracking-tight">
             {summary.critical_count}
           </p>
         </div>
 
         <div className="glass-card p-4 border-l-4 border-l-yellow-500">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-semibold text-surface-400 uppercase tracking-wider">Priorit·rios</span>
-            <Star className="w-4 h-4 text-yellow-400" />
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Priorit√°rios</span>
+            <Star className="w-4 h-4 text-warning" />
           </div>
-          <p className="text-2xl font-bold text-yellow-400 tracking-tight">
+          <p className="text-2xl font-bold text-warning tracking-tight">
             {summary.important_count}
           </p>
         </div>
 
         <div className="glass-card p-4 border-l-4 border-l-accent-500">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-semibold text-surface-400 uppercase tracking-wider">Aguardando Resposta</span>
-            <Sparkles className="w-4 h-4 text-accent-400" />
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Aguardando Resposta</span>
+            <Sparkles className="w-4 h-4 text-accent-light" />
           </div>
-          <p className="text-2xl font-bold text-accent-400 tracking-tight">
+          <p className="text-2xl font-bold text-accent-light tracking-tight">
             {summary.needs_reply_count}
           </p>
         </div>
@@ -381,7 +381,7 @@ export function EmailsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
           {/* Provider Scope Filter */}
-          <div className="flex items-center bg-surface-900 border border-surface-800 p-0.5 rounded-lg mr-2">
+          <div className="flex items-center bg-surface border border-border p-0.5 rounded-lg mr-2">
             {[
               { key: "all", label: "Todas as Caixas" },
               { key: "gmail", label: "Gmail" },
@@ -392,8 +392,8 @@ export function EmailsPage() {
                 onClick={() => setProviderFilter(p.key as any)}
                 className={`px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
                   providerFilter === p.key
-                    ? "bg-surface-700 text-white font-semibold shadow-sm"
-                    : "text-surface-400 hover:text-surface-200"
+                    ? "bg-surface-hover text-text-primary font-semibold shadow-sm"
+                    : "text-text-secondary hover:text-text-primary"
                 }`}
               >
                 {p.label}
@@ -404,9 +404,9 @@ export function EmailsPage() {
           {/* Classification Tabs */}
           {[
             { key: "all", label: "Todos" },
-            { key: "unread", label: "N„o Lidos" },
-            { key: "critical", label: "CrÌticos" },
-            { key: "important", label: "Priorit·rios (IA)" },
+            { key: "unread", label: "N√£o Lidos" },
+            { key: "critical", label: "Cr√≠ticos" },
+            { key: "important", label: "Priorit√°rios (IA)" },
             { key: "needs_reply", label: "Aguardando Resposta" },
           ].map((f) => (
             <button
@@ -414,8 +414,8 @@ export function EmailsPage() {
               onClick={() => setFilterType(f.key as any)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                 filterType === f.key
-                  ? "bg-accent-500/20 text-accent-400 border border-accent-500/30"
-                  : "text-surface-400 hover:text-surface-200 hover:bg-surface-800/60"
+                  ? "bg-accent/20 text-accent-light border border-accent/30"
+                  : "text-text-secondary hover:text-text-primary hover:bg-surface-elevated/60"
               }`}
             >
               {f.label}
@@ -424,12 +424,12 @@ export function EmailsPage() {
         </div>
 
         <div className="relative w-full sm:w-64">
-          <Search className="w-4 h-4 text-surface-400 absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-text-secondary absolute left-3 top-2.5" />
           <Input
             placeholder="Pesquisar (Gmail + Outlook)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 text-xs h-9 bg-surface-900/60"
+            className="pl-9 text-xs h-9 bg-surface/60"
           />
         </div>
       </div>
@@ -439,13 +439,13 @@ export function EmailsPage() {
         <LoadingState message="Carregando caixa de entrada unificada..." />
       ) : emails.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center glass-card border-dashed">
-          <div className="p-4 rounded-full bg-surface-800/50 mb-4 text-surface-500">
+          <div className="p-4 rounded-full bg-surface-elevated/50 mb-4 text-text-muted">
             <Mail className="w-10 h-10" />
           </div>
-          <h3 className="text-base font-semibold text-surface-200 mb-1">
+          <h3 className="text-base font-semibold text-text-primary mb-1">
             Nenhum e-mail encontrado
           </h3>
-          <p className="text-xs text-surface-400 max-w-sm mb-5">
+          <p className="text-xs text-text-secondary max-w-sm mb-5">
             Conecte sua conta do Google Gmail ou Microsoft Outlook para gerenciar seus e-mails no Resolva.
           </p>
           <div className="flex items-center gap-3 flex-wrap justify-center">
@@ -471,29 +471,29 @@ export function EmailsPage() {
                   onClick={() => setSelectedEmail(email)}
                   className={`p-3 rounded-lg border transition-all cursor-pointer space-y-1.5 ${
                     isSelected
-                      ? "border-accent-500 bg-accent-500/10 shadow-sm"
+                      ? "border-accent bg-accent/10 shadow-sm"
                       : !email.is_read
-                      ? "border-surface-700/90 bg-surface-800/50 hover:bg-surface-800/80 font-medium"
-                      : "border-surface-800/80 bg-surface-900/60 hover:border-surface-700 hover:bg-surface-800/50 text-surface-400"
+                      ? "border-border/90 bg-surface-elevated/50 hover:bg-surface-elevated/80 font-medium"
+                      : "border-border/80 bg-surface/60 hover:border-border hover:bg-surface-elevated/50 text-text-secondary"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 truncate">
                       {getProviderTag(email.provider)}
-                      <span className={`text-xs truncate ${!email.is_read ? "font-bold text-white" : "font-medium text-surface-300"}`}>
+                      <span className={`text-xs truncate ${!email.is_read ? "font-bold text-text-primary" : "font-medium text-text-secondary"}`}>
                         {email.from_name || email.from_address}
                       </span>
                     </div>
-                    <span className="text-[10px] text-surface-500 whitespace-nowrap">
+                    <span className="text-[10px] text-text-muted whitespace-nowrap">
                       {formatDate(email.received_at)}
                     </span>
                   </div>
 
-                  <h4 className={`text-xs truncate ${!email.is_read ? "font-semibold text-white" : "text-surface-300"}`}>
+                  <h4 className={`text-xs truncate ${!email.is_read ? "font-semibold text-text-primary" : "text-text-secondary"}`}>
                     {email.subject}
                   </h4>
 
-                  <p className="text-[11px] text-surface-400 line-clamp-1">
+                  <p className="text-[11px] text-text-secondary line-clamp-1">
                     {email.body_preview || email.body_text}
                   </p>
 
@@ -515,14 +515,14 @@ export function EmailsPage() {
             {selectedEmail ? (
               <div className="space-y-5 overflow-y-auto pr-2 flex-1">
                 {/* Email Header and Actions */}
-                <div className="border-b border-surface-800 pb-4 space-y-3">
+                <div className="border-b border-border pb-4 space-y-3">
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         {getProviderTag(selectedEmail.provider)}
                         {getClassificationBadge(selectedEmail.ai_classification)}
                       </div>
-                      <h2 className="text-lg font-bold text-white tracking-tight leading-snug">
+                      <h2 className="text-lg font-bold text-text-primary tracking-tight leading-snug">
                         {selectedEmail.subject}
                       </h2>
                     </div>
@@ -531,17 +531,17 @@ export function EmailsPage() {
                         size="sm"
                         variant="ghost"
                         onClick={() => handleMarkRead(selectedEmail, !selectedEmail.is_read)}
-                        title={selectedEmail.is_read ? "Marcar como n„o lido" : "Marcar como lido"}
-                        className="text-surface-400 hover:text-white p-1.5 h-8 w-8"
+                        title={selectedEmail.is_read ? "Marcar como n√£o lido" : "Marcar como lido"}
+                        className="text-text-secondary hover:text-text-primary p-1.5 h-8 w-8"
                       >
-                        <CheckCircle2 className={`w-4 h-4 ${selectedEmail.is_read ? "text-emerald-400" : ""}`} />
+                        <CheckCircle2 className={`w-4 h-4 ${selectedEmail.is_read ? "text-success" : ""}`} />
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => handleArchive(selectedEmail)}
                         title="Arquivar mensagem"
-                        className="text-surface-400 hover:text-white p-1.5 h-8 w-8"
+                        className="text-text-secondary hover:text-text-primary p-1.5 h-8 w-8"
                       >
                         <Archive className="w-4 h-4" />
                       </Button>
@@ -550,23 +550,23 @@ export function EmailsPage() {
                         variant="ghost"
                         onClick={() => handleTrash(selectedEmail)}
                         title="Mover para lixeira"
-                        className="text-surface-400 hover:text-red-400 p-1.5 h-8 w-8"
+                        className="text-text-secondary hover:text-error p-1.5 h-8 w-8"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between flex-wrap gap-2 text-xs text-surface-400">
+                  <div className="flex items-center justify-between flex-wrap gap-2 text-xs text-text-secondary">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-accent-600 flex items-center justify-center font-bold text-white text-xs">
+                      <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center font-bold text-text-primary text-xs">
                         {(selectedEmail.from_name || selectedEmail.from_address).charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <span className="font-semibold text-white block">
+                        <span className="font-semibold text-text-primary block">
                           {selectedEmail.from_name || selectedEmail.from_address}
                         </span>
-                        <span className="text-surface-500 text-[11px]">
+                        <span className="text-text-muted text-[11px]">
                           &lt;{selectedEmail.from_address}&gt;
                         </span>
                       </div>
@@ -576,9 +576,9 @@ export function EmailsPage() {
                 </div>
 
                 {/* AI Insights Bar */}
-                <div className="p-3 rounded-lg border border-accent-500/30 bg-accent-500/10 flex items-center justify-between gap-3 text-xs text-accent-300">
+                <div className="p-3 rounded-lg border border-accent/30 bg-accent/10 flex items-center justify-between gap-3 text-xs text-accent-300">
                   <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-accent-400 shrink-0" />
+                    <ShieldCheck className="w-4 h-4 text-accent-light shrink-0" />
                     <span>
                       <strong>Triagem Resolva IA:</strong> {selectedEmail.ai_reasoning || "Mensagem analisada e classificada localmente."}
                     </span>
@@ -591,7 +591,7 @@ export function EmailsPage() {
                 </div>
 
                 {/* Email Body with safe HTML or Plaintext */}
-                <div className="text-sm text-surface-200 leading-relaxed py-2">
+                <div className="text-sm text-text-primary leading-relaxed py-2">
                   {selectedEmail.body_html ? (
                     <div 
                       className="prose prose-invert max-w-none text-xs leading-relaxed overflow-x-auto"
@@ -605,23 +605,23 @@ export function EmailsPage() {
                 </div>
 
                 {/* Action Bar / Reply Trigger */}
-                <div className="pt-4 border-t border-surface-800/80">
+                <div className="pt-4 border-t border-border/80">
                   {!showReplyBox ? (
                     <Button 
                       variant="outline" 
                       size="sm" 
                       onClick={() => setShowReplyBox(true)}
-                      className="gap-2 border-surface-700 text-surface-300 hover:text-white"
+                      className="gap-2 border-border text-text-secondary hover:text-text-primary"
                     >
                       <Send className="w-3.5 h-3.5" />
-                      Responder com ConfirmaÁ„o
+                      Responder com Confirma√ß√£o
                     </Button>
                   ) : (
-                    <div className="space-y-3 bg-surface-900/90 p-4 rounded-xl border border-surface-800">
-                      <div className="text-xs font-semibold text-surface-300 flex items-center justify-between">
-                        <span>Nova Resposta para: <strong className="text-white">{selectedEmail.from_address}</strong> ({selectedEmail.provider?.toUpperCase()})</span>
-                        <Badge variant="outline" className="text-[10px] border-amber-500/40 text-amber-400">
-                          Requer ConfirmaÁ„o ExplÌcita
+                    <div className="space-y-3 bg-surface/90 p-4 rounded-xl border border-border">
+                      <div className="text-xs font-semibold text-text-secondary flex items-center justify-between">
+                        <span>Nova Resposta para: <strong className="text-text-primary">{selectedEmail.from_address}</strong> ({selectedEmail.provider?.toUpperCase()})</span>
+                        <Badge variant="outline" className="text-[10px] border-amber-500/40 text-warning">
+                          Requer Confirma√ß√£o Expl√≠cita
                         </Badge>
                       </div>
                       <textarea
@@ -629,7 +629,7 @@ export function EmailsPage() {
                         onChange={(e) => setReplyText(e.target.value)}
                         placeholder="Digite sua resposta..."
                         rows={4}
-                        className="w-full rounded-md border border-surface-700 bg-surface-800 p-3 text-xs text-white placeholder-surface-500 focus:outline-none focus:ring-2 focus:ring-accent-500"
+                        className="w-full rounded-md border border-border bg-surface-elevated p-3 text-xs text-text-primary placeholder-surface-500 focus:outline-none focus:ring-2 focus:ring-accent-500"
                       />
                       <div className="flex items-center justify-end gap-2">
                         <Button 
@@ -654,7 +654,7 @@ export function EmailsPage() {
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-surface-500">
+              <div className="flex flex-col items-center justify-center h-full text-text-muted">
                 <Mail className="w-10 h-10 mb-2 opacity-30" />
                 <p className="text-xs">Selecione um email para ler.</p>
               </div>

@@ -61,7 +61,7 @@ export function Tooltip({ children, content, position = "top" }: TooltipProps) {
           className="fixed z-50 animate-fade-in pointer-events-none"
           style={getPositionStyles()}
         >
-          <div className="rounded-md bg-surface-800 px-2.5 py-1.5 text-xs font-medium text-white shadow-xl border border-surface-700">
+          <div className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-xs font-medium text-text-primary shadow-xl border border-border">
             {content}
           </div>
         </div>,

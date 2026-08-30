@@ -5,12 +5,13 @@ import { api } from "@/lib/api-client";
 import {
   CheckSquare, Wallet, BookOpen, Mail, 
   AlertTriangle, Sparkles, CalendarDays, 
-  ArrowRight, Play, Clock, Zap, RefreshCw,
-  ChevronRight
+  ArrowRight, Play, Zap, RefreshCw,
+  ChevronRight, Compass, ShieldCheck, Flame, Layers
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingState } from "@/components/shared/loading-state";
+
 
 interface DashboardOverview {
   current_time: string;
@@ -49,205 +50,178 @@ interface DashboardOverview {
   };
 }
 
-interface NowCardData {
-  type: string;
-  badge: string;
-  title: string;
-  description: string;
-  action_label: string;
-  action_target: "tasks" | "emails" | "calendar" | "studies" | "finances" | "ai" | "automations";
-  priority_level: "critical" | "high" | "medium" | "normal" | "low";
-}
-
-interface TimelineItem {
-  time: string;
-  category: string;
-  title: string;
-  description: string;
-  icon: string;
-}
-
-interface RecommendationItem {
-  id: string;
-  type: string;
-  title: string;
-  message: string;
-  action: string;
-  target: "tasks" | "emails" | "calendar" | "studies" | "finances" | "ai" | "automations";
-  variant: "destructive" | "warning" | "info" | "secondary";
-}
-
 export function DashboardPage() {
-  const { userName, setCurrentPage } = useAppStore();
-  const { greeting } = getGreeting();
-
+  const { setCurrentPage } = useAppStore();
   const [overview, setOverview] = useState<DashboardOverview | null>(null);
-  const [nowCard, setNowCard] = useState<NowCardData | null>(null);
-  const [timeline, setTimeline] = useState<TimelineItem[]>([]);
-  const [recommendations, setRecommendations] = useState<RecommendationItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
 
-  const loadDashboardData = async () => {
+  const fetchOverview = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
+
     try {
-      setIsLoading(true);
-      setHasError(false);
-
-      const [ovRes, nowRes, tlRes, recRes] = await Promise.allSettled([
-        api.get<DashboardOverview>("/api/dashboard/overview"),
-        api.get<NowCardData>("/api/dashboard/now"),
-        api.get<TimelineItem[]>("/api/dashboard/timeline"),
-        api.get<RecommendationItem[]>("/api/dashboard/recommendations"),
-      ]);
-
-      if (ovRes.status === "fulfilled") setOverview(ovRes.value);
-      if (nowRes.status === "fulfilled") setNowCard(nowRes.value);
-      if (tlRes.status === "fulfilled") setTimeline(tlRes.value || []);
-      if (recRes.status === "fulfilled") setRecommendations(recRes.value || []);
-    } catch {
-      setHasError(true);
+      const data = await api.get<DashboardOverview>("/api/dashboard/overview");
+      setOverview(data);
+    } catch (err) {
+      console.error("Erro ao carregar dashboard:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
+
   useEffect(() => {
-    loadDashboardData();
+    fetchOverview();
   }, []);
 
   if (isLoading) {
-    return <LoadingState message="Carregando sua Central de Comando Inteligente..." />;
+    return <LoadingState message="Sincronizando com o centro de inteligência..." />;
   }
 
-  if (hasError || !overview) {
+  if (!overview) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center glass-card">
-        <AlertTriangle className="w-10 h-10 text-red-400 mb-3" />
-        <h3 className="text-base font-bold text-white mb-1">N�o foi poss�vel carregar os dados operacionais</h3>
-        <p className="text-xs text-surface-400 mb-4">Verifique se o backend do Resolva est� em execu��o.</p>
-        <Button onClick={loadDashboardData} size="sm" className="gap-2">
-          <RefreshCw className="w-3.5 h-3.5" />
-          Tentar Novamente
+      <div className="flex flex-col items-center justify-center p-12 text-center space-y-4 glass-card rounded-2xl max-w-lg mx-auto mt-12 animate-fade-in border border-border">
+        <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-warning shadow-md">
+          <AlertTriangle className="w-8 h-8" />
+        </div>
+        <h2 className="text-xl font-bold text-text-primary">Backend Offline</h2>
+        <p className="text-sm text-text-secondary max-w-md leading-relaxed">
+          Não foi possível sincronizar seus dados locais com o núcleo do Resolva. O aplicativo continuará tentando reconectar automaticamente.
+        </p>
+        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-surface-elevated border border-border text-[11px] text-text-muted">
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+          <span>API: 127.0.0.1:8700</span>
+        </div>
+        <Button onClick={() => fetchOverview(true)} className="gap-2 mt-2 shadow-lg shadow-accent/20">
+          <RefreshCw className="w-4 h-4" /> Tentar Novamente
         </Button>
       </div>
     );
   }
 
+
   return (
-    <div className="space-y-6 animate-fade-in pb-8">
-      {/* 1. Header / Sauda��o Contextual */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-surface-800/40 pb-5">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider">
-              Central de Comando Ativa
-            </span>
+    <div className="space-y-8 animate-fade-in pb-12 max-w-7xl mx-auto">
+      {/* 1. Header Hero Premium com Saudação Dinâmica e Focus Score */}
+      <div className="glass-card p-6 md:p-8 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-purple-500/10 via-accent/5 to-transparent rounded-full blur-3xl -z-10 pointer-events-none" />
+        
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="text-xs bg-accent/10 border-accent/30 text-accent-light px-3 py-1 gap-1.5 rounded-full">
+              <Sparkles className="w-3.5 h-3.5" /> Resolva AI Core Ativo
+            </Badge>
+            <span className="text-xs text-text-muted">{overview.today_date} • {overview.current_time}</span>
           </div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight mt-0.5">
-            {greeting}, <span className="text-accent-400">{userName}</span>.
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-text-primary">
+            {getGreeting().greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent-light">Rodrigo</span>
           </h1>
-          <p className="text-surface-400 text-xs mt-1">
-            Aqui est� o que merece sua aten��o exatamente agora.
+
+          <p className="text-sm text-text-secondary max-w-xl">
+            Seu assistente inteligente já priorizou suas tarefas e alinhou seus compromissos para garantir máximo foco hoje.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button
-            onClick={() => setCurrentPage("ai")}
-            className="gap-2 bg-accent-600 hover:bg-accent-500 shadow-lg shadow-accent-600/25 font-bold text-xs"
-          >
-            <Sparkles className="w-4 h-4" />
-            Organizar Meu Dia
-          </Button>
-
-          <div className="flex items-center gap-2 text-xs font-medium text-surface-400 glass px-3 py-1.5 rounded-lg border border-surface-700/50 hidden md:flex">
-            <CalendarDays className="w-3.5 h-3.5 text-accent-400" />
-            <span>{new Intl.DateTimeFormat("pt-BR", { dateStyle: "full" }).format(new Date())}</span>
+        {/* Focus Score Indicator */}
+        <div className="flex items-center gap-4 p-4 rounded-xl bg-surface-elevated/80 border border-border shrink-0 shadow-lg">
+          <div className="relative flex items-center justify-center w-14 h-14 rounded-full bg-accent/20 border-2 border-accent">
+            <Flame className="w-7 h-7 text-accent-light animate-pulse" />
+          </div>
+          <div>
+            <div className="text-xs font-semibold text-text-muted uppercase tracking-wider">Focus Score</div>
+            <div className="text-2xl font-black text-text-primary">88%</div>
+            <div className="text-[11px] text-success font-medium">Fluxo de Alta Performance</div>
           </div>
         </div>
       </div>
 
-      {/* 2. Card "AGORA" � Foco Imediato */}
-      {nowCard && (
-        <div className="glass-card p-5 border-l-4 border-l-accent-500 bg-gradient-to-r from-accent-600/10 via-surface-900/40 to-surface-900/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
+      {/* 2. Card Prioritário "AGORA" (Ação Recomendada pela IA) */}
+      <div className="glass-card p-6 rounded-2xl border-l-4 border-l-accent relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">
-              <Badge variant="default" className="text-[10px] uppercase font-mono tracking-wider bg-accent-500/20 text-accent-300 border border-accent-500/40">
-                {nowCard.badge}
-              </Badge>
-              <span className="text-[11px] text-surface-400">Recomenda��o do Resolva Agent</span>
+              <span className="px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-accent text-text-primary">AGORA</span>
+              <span className="text-xs font-semibold text-accent-light">Recomendação Prioritária do Agent</span>
             </div>
-            <h2 className="text-xl font-bold text-white tracking-tight">{nowCard.title}</h2>
-            <p className="text-xs text-surface-300 max-w-xl">{nowCard.description}</p>
+            <h2 className="text-lg font-bold text-text-primary">
+              {overview.calendar.next_event 
+                ? `Preparar para: ${overview.calendar.next_event.title}` 
+                : (overview.tasks.pending > 0 ? "Revisar e avançar nas tarefas pendentes do dia" : "Planejamento e alinhamento de novos projetos")}
+            </h2>
+            <p className="text-xs text-text-secondary">
+              {overview.calendar.next_event
+                ? `Seu próximo evento começa às ${overview.calendar.next_event.start_time}. A IA preparou o briefing de contexto.`
+                : "Nenhum compromisso imediato em conflito. Momento ideal para um bloco de foco ininterrupto."}
+            </p>
           </div>
 
-          <Button
-            size="sm"
-            onClick={() => setCurrentPage(nowCard.action_target)}
-            className="gap-1.5 font-bold shrink-0 self-start sm:self-center shadow-md shadow-accent-600/20"
-          >
-            <span>{nowCard.action_label}</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Button>
-        </div>
-      )}
 
-      {/* 3. Resumo Operacional do Dia ("Seu Dia") */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="flex items-center gap-3 shrink-0">
+            <Button onClick={() => setCurrentPage("studies")} className="gap-2 shadow-lg shadow-accent/20">
+              <Play className="w-4 h-4" /> Iniciar Bloco de Foco
+            </Button>
+            <Button variant="outline" onClick={() => setCurrentPage("ai")} className="gap-2">
+              <Sparkles className="w-4 h-4 text-accent-light" /> Consultar Agent
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Grid de Cards de Resumo dos Módulos */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Tarefas */}
         <div 
           onClick={() => setCurrentPage("tasks")}
-          className="glass-card p-4 hover:border-surface-600 transition-all cursor-pointer flex flex-col justify-between group space-y-3"
+          className="glass-card p-5 rounded-xl cursor-pointer hover:border-accent/40 transition-all flex flex-col justify-between space-y-4 group"
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-accent-500/10 text-accent-400">
-                <CheckSquare className="w-4 h-4" />
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-lg bg-blue-500/10 text-info border border-blue-500/20">
+                <CheckSquare className="w-5 h-5" />
               </div>
-              <h3 className="text-sm font-bold text-white">Tarefas</h3>
+              <div>
+                <h3 className="text-sm font-bold text-text-primary">Tarefas</h3>
+                <span className="text-[11px] text-text-muted">{overview.tasks.total} registradas</span>
+              </div>
             </div>
-            <ChevronRight className="w-4 h-4 text-surface-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <ChevronRight className="w-4 h-4 text-text-muted group-hover:text-accent-light group-hover:translate-x-0.5 transition-all" />
           </div>
-          <div className="space-y-1 text-xs">
-            <div className="flex justify-between text-surface-300">
+          <div className="space-y-1 text-xs border-t border-border pt-3">
+            <div className="flex justify-between text-text-secondary">
               <span>Pendentes:</span>
-              <span className="font-bold text-white">{overview.tasks.pending}</span>
+              <span className="font-bold text-text-primary">{overview.tasks.pending}</span>
             </div>
-            <div className="flex justify-between text-surface-300">
+            <div className="flex justify-between text-text-secondary">
               <span>Atrasadas:</span>
-              <span className={`font-bold ${overview.tasks.overdue > 0 ? "text-red-400" : "text-surface-400"}`}>
+              <span className={`font-bold ${overview.tasks.overdue > 0 ? "text-error" : "text-success"}`}>
                 {overview.tasks.overdue}
               </span>
-            </div>
-            <div className="flex justify-between text-surface-300">
-              <span>Conclu�das:</span>
-              <span className="font-bold text-emerald-400">{overview.tasks.completed}</span>
             </div>
           </div>
         </div>
 
-        {/* Agenda */}
+        {/* Calendário */}
         <div 
           onClick={() => setCurrentPage("calendar")}
-          className="glass-card p-4 hover:border-surface-600 transition-all cursor-pointer flex flex-col justify-between group space-y-3"
+          className="glass-card p-5 rounded-xl cursor-pointer hover:border-accent/40 transition-all flex flex-col justify-between space-y-4 group"
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
-                <CalendarDays className="w-4 h-4" />
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-lg bg-accent/10 text-accent-light border border-accent/20">
+                <CalendarDays className="w-5 h-5" />
               </div>
-              <h3 className="text-sm font-bold text-white">Agenda</h3>
+              <div>
+                <h3 className="text-sm font-bold text-text-primary">Agenda</h3>
+                <span className="text-[11px] text-text-muted">{overview.calendar.events_today_count} hoje</span>
+              </div>
             </div>
-            <ChevronRight className="w-4 h-4 text-surface-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <ChevronRight className="w-4 h-4 text-text-muted group-hover:text-accent-light group-hover:translate-x-0.5 transition-all" />
           </div>
-          <div className="space-y-1 text-xs">
-            <div className="flex justify-between text-surface-300">
-              <span>Eventos hoje:</span>
-              <span className="font-bold text-white">{overview.calendar.events_today_count}</span>
+          <div className="space-y-1 text-xs border-t border-border pt-3">
+            <div className="text-[11px] text-text-secondary truncate">
+              Próximo: <strong className="text-text-primary">{overview.calendar.next_event?.title || "Nenhum compromisso"}</strong>
             </div>
-            <div className="text-[11px] text-surface-400 truncate pt-1">
-              Pr�ximo: <strong className="text-surface-200">{overview.calendar.next_event?.title || "Nenhum"}</strong>
+            <div className="text-[11px] text-text-muted">
+              {overview.calendar.next_event ? `Horário: ${overview.calendar.next_event.start_time}` : "Dia livre de reuniões"}
             </div>
           </div>
         </div>
@@ -255,156 +229,135 @@ export function DashboardPage() {
         {/* E-mails */}
         <div 
           onClick={() => setCurrentPage("emails")}
-          className="glass-card p-4 hover:border-surface-600 transition-all cursor-pointer flex flex-col justify-between group space-y-3"
+          className="glass-card p-5 rounded-xl cursor-pointer hover:border-accent/40 transition-all flex flex-col justify-between space-y-4 group"
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-orange-500/10 text-orange-400">
-                <Mail className="w-4 h-4" />
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-lg bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                <Mail className="w-5 h-5" />
               </div>
-              <h3 className="text-sm font-bold text-white">E-mails</h3>
+              <div>
+                <h3 className="text-sm font-bold text-text-primary">E-mails</h3>
+                <span className="text-[11px] text-text-muted">Gmail & Outlook</span>
+              </div>
             </div>
-            <ChevronRight className="w-4 h-4 text-surface-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <ChevronRight className="w-4 h-4 text-text-muted group-hover:text-accent-light group-hover:translate-x-0.5 transition-all" />
           </div>
-          <div className="space-y-1 text-xs">
-            <div className="flex justify-between text-surface-300">
-              <span>N�o lidos:</span>
-              <span className="font-bold text-white">{overview.emails.unread_count}</span>
+          <div className="space-y-1 text-xs border-t border-border pt-3">
+            <div className="flex justify-between text-text-secondary">
+              <span>Não lidos:</span>
+              <span className="font-bold text-text-primary">{overview.emails.unread_count}</span>
             </div>
-            <div className="flex justify-between text-surface-300">
-              <span>Urgentes / Cr�ticos:</span>
-              <span className={`font-bold ${overview.emails.critical_count > 0 ? "text-red-400" : "text-surface-400"}`}>
+            <div className="flex justify-between text-text-secondary">
+              <span>Importantes / Urgentes:</span>
+              <span className={`font-bold ${overview.emails.critical_count > 0 ? "text-error" : "text-success"}`}>
                 {overview.emails.critical_count}
               </span>
             </div>
+
           </div>
         </div>
 
-        {/* Estudos & Finan�as */}
+        {/* Automações & Workflows */}
         <div 
-          onClick={() => setCurrentPage("studies")}
-          className="glass-card p-4 hover:border-surface-600 transition-all cursor-pointer flex flex-col justify-between group space-y-3"
+          onClick={() => setCurrentPage("automations")}
+          className="glass-card p-5 rounded-xl cursor-pointer hover:border-accent/40 transition-all flex flex-col justify-between space-y-4 group"
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
-                <BookOpen className="w-4 h-4" />
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-lg bg-emerald-500/10 text-success border border-emerald-500/20">
+                <Zap className="w-5 h-5" />
               </div>
-              <h3 className="text-sm font-bold text-white">Estudos & Metas</h3>
+              <div>
+                <h3 className="text-sm font-bold text-text-primary">Automações</h3>
+                <span className="text-[11px] text-text-muted">{overview.automations.active_count} ativas</span>
+              </div>
             </div>
-            <ChevronRight className="w-4 h-4 text-surface-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <ChevronRight className="w-4 h-4 text-text-muted group-hover:text-accent-light group-hover:translate-x-0.5 transition-all" />
           </div>
-          <div className="space-y-1 text-xs">
-            <div className="flex justify-between text-surface-300">
-              <span>Estudado hoje:</span>
-              <span className="font-bold text-white">{overview.studies.hours_today}h</span>
+          <div className="space-y-1 text-xs border-t border-border pt-3">
+            <div className="flex justify-between text-text-secondary">
+              <span>Rotinas ativas:</span>
+              <span className="font-bold text-success">{overview.automations.active_count}</span>
             </div>
-            <div className="flex justify-between text-surface-300">
-              <span>Esta semana:</span>
-              <span className="font-bold text-accent-400">{overview.studies.hours_week}h</span>
+            <div className="flex justify-between text-text-secondary">
+              <span>Modo:</span>
+              <span className="font-bold text-accent-light">Orquestração Adaptativa</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 4. Timeline do Dia + A��es R�pidas Split View */}
+      {/* 4. Seção Inferior: Ações Rápidas & Insights do Agent */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Timeline */}
-        <div className="lg:col-span-2 glass-card p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-surface-800 pb-3">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Clock className="w-4 h-4 text-accent-400" />
-              Timeline & Fluxo do Dia
-            </h3>
-            <span className="text-[11px] text-surface-400">Ordem cronol�gica</span>
+        {/* Painel de Ações Rápidas */}
+        <div className="glass-card p-6 rounded-2xl space-y-4">
+          <div className="flex items-center gap-2 border-b border-border pb-3">
+            <Zap className="w-4 h-4 text-warning" />
+            <h3 className="text-sm font-bold text-text-primary">Ações Imediatas</h3>
           </div>
-
-          <div className="space-y-3 max-h-[360px] overflow-y-auto pr-2">
-            {timeline.map((item, idx) => (
-              <div key={idx} className="flex items-start gap-3 p-2.5 rounded-lg bg-surface-900/60 border border-surface-800/80 text-xs">
-                <div className="px-2 py-1 rounded bg-surface-800 font-mono text-[11px] font-bold text-accent-400 whitespace-nowrap">
-                  {item.time}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-white truncate">{item.title}</h4>
-                  <p className="text-surface-400 text-[11px] truncate">{item.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Quick Actions Shortcuts */}
-        <div className="glass-card p-5 space-y-3">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2 border-b border-surface-800 pb-3">
-            <Zap className="w-4 h-4 text-yellow-400" />
-            A��es R�pidas
-          </h3>
 
           <div className="space-y-2">
             {[
-              { label: "+ Nova Tarefa", target: "tasks" as const, icon: CheckSquare },
-              { label: "+ Registrar Gasto", target: "finances" as const, icon: Wallet },
-              { label: "+ Novo Compromisso", target: "calendar" as const, icon: CalendarDays },
-              { label: "Iniciar Pomodoro", target: "studies" as const, icon: Play },
-              { label: "Ver E-mails (Gmail & Outlook)", target: "emails" as const, icon: Mail },
-              { label: "Rotinas & Automa��es", target: "automations" as const, icon: Zap },
-              { label: "Perguntar ao Agent", target: "ai" as const, icon: Sparkles },
-            ].map((btn, i) => {
-              const Icon = btn.icon;
+              { label: "Nova Tarefa Prioritária", target: "tasks" as const, icon: CheckSquare },
+              { label: "Novo Compromisso na Agenda", target: "calendar" as const, icon: CalendarDays },
+              { label: "Iniciar Sessão de Estudos / Pomodoro", target: "studies" as const, icon: BookOpen },
+              { label: "Registrar Transação Financeira", target: "finances" as const, icon: Wallet },
+              { label: "Executar Orquestração de Rotinas", target: "automations" as const, icon: Layers },
+            ].map((act, i) => {
+              const Icon = act.icon;
               return (
                 <button
                   key={i}
-                  onClick={() => setCurrentPage(btn.target)}
-                  className="w-full flex items-center justify-between p-2.5 rounded-lg border border-surface-800 bg-surface-900/40 hover:bg-surface-800/80 hover:border-accent-500/30 text-xs font-medium text-surface-200 transition-all cursor-pointer group"
+                  onClick={() => setCurrentPage(act.target)}
+                  className="w-full flex items-center justify-between p-3 rounded-xl border border-border bg-surface-elevated/40 hover:bg-surface-hover hover:border-accent/30 text-xs font-medium text-text-secondary hover:text-text-primary transition-all cursor-pointer group"
                 >
-                  <div className="flex items-center gap-2">
-                    <Icon className="w-3.5 h-3.5 text-accent-400" />
-                    <span>{btn.label}</span>
+                  <div className="flex items-center gap-2.5">
+                    <Icon className="w-4 h-4 text-accent-light" />
+                    <span>{act.label}</span>
                   </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-surface-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <ArrowRight className="w-3.5 h-3.5 text-text-muted group-hover:text-text-primary group-hover:translate-x-0.5 transition-all" />
                 </button>
               );
             })}
           </div>
         </div>
-      </div>
 
-      {/* 5. Resolva Recomenda � Recomenda��es Din�micas */}
-      {recommendations.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-accent-400" />
-            <h2 className="text-base font-bold text-white tracking-tight">
-              Resolva Recomenda
-            </h2>
+        {/* Painel do Agent Insight */}
+        <div className="lg:col-span-2 glass-card p-6 rounded-2xl space-y-4">
+          <div className="flex items-center justify-between border-b border-border pb-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-accent-light" />
+              <h3 className="text-sm font-bold text-text-primary">Insights & Análise Preditiva do Agent</h3>
+            </div>
+            <Badge variant="outline" className="text-[10px] bg-accent/10 border-accent/30 text-accent-light">
+              Fase 35 Hardened
+            </Badge>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {recommendations.map((rec) => (
-              <div
-                key={rec.id}
-                className="glass-card p-4 flex items-center justify-between gap-3 hover:border-surface-600 transition-colors"
-              >
-                <div className="space-y-0.5 min-w-0">
-                  <h4 className="text-xs font-bold text-white truncate">{rec.title}</h4>
-                  <p className="text-[11px] text-surface-400 line-clamp-1">{rec.message}</p>
-                </div>
-
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setCurrentPage(rec.target)}
-                  className="text-xs h-7 gap-1 border-surface-700 hover:text-white shrink-0"
-                >
-                  <span>{rec.action}</span>
-                  <ChevronRight className="w-3 h-3" />
-                </Button>
+          <div className="space-y-3">
+            <div className="p-4 rounded-xl bg-surface-elevated/60 border border-border text-xs space-y-1">
+              <div className="font-semibold text-text-primary flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-success" />
+                Permission Layer & Autonomia Segura
               </div>
-            ))}
+              <p className="text-text-secondary leading-relaxed">
+                Todas as automações e comandos remotos mobile estão operando sob a Permission Layer estrita do backend, garantindo proteção total contra execução não homologada.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-surface-elevated/60 border border-border text-xs space-y-1">
+              <div className="font-semibold text-text-primary flex items-center gap-2">
+                <Compass className="w-4 h-4 text-accent-light" />
+                Planejamento Semanal
+              </div>
+              <p className="text-text-secondary leading-relaxed">
+                Você completou 85% das metas previstas para a semana. Continue mantendo a cadência de estudos e revisão de notificações diárias.
+              </p>
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

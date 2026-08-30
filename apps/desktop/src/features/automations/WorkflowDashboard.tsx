@@ -148,24 +148,24 @@ export function WorkflowDashboard() {
 
 
   const activeTabClass = (tab: "ACTIVE" | "TEMPLATES") => {
-    return selectedTab === tab ? "bg-accent-600 text-white" : "text-surface-400 hover:text-white";
+    return selectedTab === tab ? "bg-accent text-text-primary" : "text-text-secondary hover:text-text-primary";
   };
 
   return (
     <div className="space-y-6 animate-fade-in p-2">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-800 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
         <div>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <GitBranch className="w-5 h-5 text-accent-400" />
+          <h2 className="text-lg font-bold text-text-primary flex items-center gap-2">
+            <GitBranch className="w-5 h-5 text-accent-light" />
             Workflow Engine & Intelligence
           </h2>
-          <p className="text-xs text-surface-400 mt-1">
+          <p className="text-xs text-text-secondary mt-1">
             Automações declarativas com permissionamento estrito, simulação Dry Run e auditoria.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="bg-surface-900 border border-surface-800 p-1 rounded-xl flex gap-1 text-xs">
+          <div className="bg-surface border border-border p-1 rounded-xl flex gap-1 text-xs">
             <button
               onClick={() => setSelectedTab("ACTIVE")}
               className={"px-3 py-1.5 rounded-lg font-medium transition-colors " + activeTabClass("ACTIVE")}
@@ -180,7 +180,7 @@ export function WorkflowDashboard() {
             </button>
           </div>
 
-          <Button size="sm" onClick={() => setIsCreateOpen(true)} className="gap-1.5 bg-accent-600 hover:bg-accent-700 text-xs">
+          <Button size="sm" onClick={() => setIsCreateOpen(true)} className="gap-1.5 bg-accent hover:bg-accent text-xs">
             <Plus className="w-4 h-4" /> Novo Workflow
           </Button>
         </div>
@@ -189,49 +189,49 @@ export function WorkflowDashboard() {
       {selectedTab === "ACTIVE" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {workflows.map((wf) => (
-            <div key={wf.workflow_id} className="glass-card p-4 rounded-xl border border-surface-800 bg-surface-950/60 space-y-3">
+            <div key={wf.workflow_id} className="glass-card p-4 rounded-xl border border-border bg-background/60 space-y-3">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
                     {wf.name}
                     <Badge variant={wf.enabled ? "success" : "secondary"} className="text-[10px]">
                       {wf.enabled ? "ATIVO" : "PAUSADO"}
                     </Badge>
                   </h3>
-                  {wf.description && <p className="text-xs text-surface-400 mt-0.5">{wf.description}</p>}
+                  {wf.description && <p className="text-xs text-text-secondary mt-0.5">{wf.description}</p>}
                 </div>
 
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => handleToggle(wf)}
-                  className="h-7 text-xs border-surface-700 text-surface-300 hover:text-white"
+                  className="h-7 text-xs border-border text-text-secondary hover:text-text-primary"
                 >
                   {wf.enabled ? "Pausar" : "Ativar"}
                 </Button>
               </div>
 
-              <div className="p-2.5 rounded-lg bg-surface-900/80 border border-surface-800/80 space-y-1.5 text-xs">
-                <span className="text-[10px] font-bold text-surface-400 uppercase tracking-wider">
+              <div className="p-2.5 rounded-lg bg-surface/80 border border-border/80 space-y-1.5 text-xs">
+                <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">
                   Etapas ({wf.steps?.length || 0}):
                 </span>
                 {wf.steps?.map((step, idx) => (
-                  <div key={idx} className="flex items-center gap-2 text-surface-300">
-                    <span className="w-4 h-4 rounded-full bg-accent-500/20 text-accent-400 text-[10px] flex items-center justify-center font-bold">
+                  <div key={idx} className="flex items-center gap-2 text-text-secondary">
+                    <span className="w-4 h-4 rounded-full bg-accent/20 text-accent-light text-[10px] flex items-center justify-center font-bold">
                       {idx + 1}
                     </span>
                     <span>{step.name}</span>
-                    <span className="text-[10px] font-mono text-surface-400">({step.action_type})</span>
+                    <span className="text-[10px] font-mono text-text-secondary">({step.action_type})</span>
                   </div>
                 ))}
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-1 border-t border-surface-800/60">
+              <div className="flex items-center justify-end gap-2 pt-1 border-t border-border/60">
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => handleTestDryRun(wf)}
-                  className="h-7 text-xs text-accent-400 hover:text-accent-300 hover:bg-accent-500/10 gap-1"
+                  className="h-7 text-xs text-accent-light hover:text-accent-300 hover:bg-accent/10 gap-1"
                 >
                   <Play className="w-3 h-3" /> Simular (Dry Run)
                 </Button>
@@ -244,22 +244,22 @@ export function WorkflowDashboard() {
       {selectedTab === "TEMPLATES" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {templates.map((tpl) => (
-            <div key={tpl.template_id} className="glass-card p-4 rounded-xl border border-surface-800 bg-surface-950/60 flex flex-col justify-between space-y-3">
+            <div key={tpl.template_id} className="glass-card p-4 rounded-xl border border-border bg-background/60 flex flex-col justify-between space-y-3">
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Badge variant="outline" className="text-[10px] text-accent-400 border-accent-500/30">
+                  <Badge variant="outline" className="text-[10px] text-accent-light border-accent/30">
                     {tpl.category}
                   </Badge>
-                  <span className="text-[10px] text-surface-400 font-mono">{tpl.steps.length} etapas</span>
+                  <span className="text-[10px] text-text-secondary font-mono">{tpl.steps.length} etapas</span>
                 </div>
-                <h4 className="text-sm font-bold text-white">{tpl.name}</h4>
-                <p className="text-xs text-surface-400">{tpl.description}</p>
+                <h4 className="text-sm font-bold text-text-primary">{tpl.name}</h4>
+                <p className="text-xs text-text-secondary">{tpl.description}</p>
               </div>
 
               <Button
                 size="sm"
                 onClick={() => handleCreateFromTemplate(tpl)}
-                className="w-full text-xs bg-surface-800 hover:bg-accent-600 hover:text-white text-surface-200 transition-colors"
+                className="w-full text-xs bg-surface-elevated hover:bg-accent hover:text-text-primary text-text-primary transition-colors"
               >
                 Ativar este Template
               </Button>
@@ -269,30 +269,30 @@ export function WorkflowDashboard() {
       )}
 
       <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Criar Novo Workflow">
-        <div className="space-y-4 text-xs text-surface-300">
+        <div className="space-y-4 text-xs text-text-secondary">
           <div>
-            <label className="block text-surface-400 mb-1 font-medium">Nome do Workflow</label>
+            <label className="block text-text-secondary mb-1 font-medium">Nome do Workflow</label>
             <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Ex: Preparação para Estudos" />
           </div>
 
           <div>
-            <label className="block text-surface-400 mb-1 font-medium">Descrição</label>
+            <label className="block text-text-secondary mb-1 font-medium">Descrição</label>
             <Input value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="Objetivo desta automação..." />
           </div>
 
-          <div className="p-3 rounded-xl bg-surface-900/80 border border-surface-800 space-y-3">
-            <span className="font-bold text-accent-400">Etapa Inicial (Catálogo Homologado)</span>
+          <div className="p-3 rounded-xl bg-surface/80 border border-border space-y-3">
+            <span className="font-bold text-accent-light">Etapa Inicial (Catálogo Homologado)</span>
             <div>
-              <label className="block text-surface-400 mb-1 font-medium">Nome da Etapa</label>
+              <label className="block text-text-secondary mb-1 font-medium">Nome da Etapa</label>
               <Input value={newStepName} onChange={(e) => setNewStepName(e.target.value)} />
             </div>
 
             <div>
-              <label className="block text-surface-400 mb-1 font-medium">Ação Homologada</label>
+              <label className="block text-text-secondary mb-1 font-medium">Ação Homologada</label>
               <select
                 value={newActionType}
                 onChange={(e) => setNewActionType(e.target.value)}
-                className="w-full bg-surface-950 border border-surface-700 rounded-lg p-2 text-white text-xs outline-none"
+                className="w-full bg-background border border-border rounded-lg p-2 text-text-primary text-xs outline-none"
               >
                 <option value="SHOW_NOTIFICATION">SHOW_NOTIFICATION (Notificação)</option>
                 <option value="START_POMODORO">START_POMODORO (Iniciar Foco)</option>
@@ -307,7 +307,7 @@ export function WorkflowDashboard() {
 
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="ghost" size="sm" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
-            <Button size="sm" onClick={handleCreateCustom} className="bg-accent-600 hover:bg-accent-700 text-white">Criar Workflow</Button>
+            <Button size="sm" onClick={handleCreateCustom} className="bg-accent hover:bg-accent text-text-primary">Criar Workflow</Button>
           </div>
         </div>
       </Modal>
