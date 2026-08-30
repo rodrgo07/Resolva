@@ -150,9 +150,20 @@ fn find_backend_and_python() -> Option<(PathBuf, PathBuf)> {
     None
 }
 
+fn is_backend_running() -> bool {
+    use std::net::TcpStream;
+    TcpStream::connect("127.0.0.1:8700").is_ok()
+}
+
 fn spawn_backend_process() -> Option<Child> {
     #[cfg(windows)]
     const CREATE_NO_WINDOW: u32 = 0x08000000;
+
+    // Se o backend já está rodando (ex:另一个 instância ou dev), não iniciar de novo
+    if is_backend_running() {
+        println!("[RESOLVA TAURI] Backend já está rodando na porta 8700. Pulando spawn.");
+        return None;
+    }
 
     if let Some((python_path, backend_dir)) = find_backend_and_python() {
         println!("[RESOLVA TAURI] Backend localizado. Python: {:?} | Dir: {:?}", python_path, backend_dir);
