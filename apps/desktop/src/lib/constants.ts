@@ -1,8 +1,12 @@
 export const API_BASE_URL = "http://127.0.0.1:8700";
 
 export const APP_NAME = "Resolva";
-export const APP_VERSION = "0.1.0";
+export const APP_VERSION = "1.0.0";
 export const APP_DESCRIPTION = "Seu centro de comando pessoal.";
+
+export const BACKEND_STARTUP_DELAY_MS = 3000;
+export const BACKEND_MAX_RETRIES = 10;
+export const BACKEND_RETRY_INTERVAL_MS = 2000;
 
 export const PRIORITIES = {
   baixa: { label: "Baixa", color: "text-success", bg: "bg-green-400/10", border: "border-green-400/20" },

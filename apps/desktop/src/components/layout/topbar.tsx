@@ -1,4 +1,4 @@
-import { Search, Bell } from "lucide-react"
+import { Search, Bell, Wifi, WifiOff, Loader2 } from "lucide-react"
 import { useAppStore } from "@/stores/app-store"
 import { useNotificationStore } from "@/stores/notification-store"
 import { Button } from "@/components/ui/button"
@@ -18,13 +18,27 @@ const pageTitles: Record<string, string> = {
 }
 
 export function Topbar() {
-  const { currentPage, setCurrentPage, setSearchOpen } = useAppStore()
+  const { currentPage, setCurrentPage, setSearchOpen, backendStatus } = useAppStore()
   const { unreadCount } = useNotificationStore()
   const title = pageTitles[currentPage] || "Resolva"
-  
+
+  const statusConfig = {
+    connected: { icon: Wifi, color: "text-green-400", label: "Backend online" },
+    connecting: { icon: Loader2, color: "text-yellow-400", label: "Conectando..." },
+    disconnected: { icon: WifiOff, color: "text-red-400", label: "Backend offline" },
+  }
+  const status = statusConfig[backendStatus]
+  const StatusIcon = status.icon
+
   return (
     <header className="h-16 w-full flex items-center justify-between px-8 border-b border-border bg-surface/50 backdrop-blur-xl sticky top-0 z-30">
-      <h1 className="text-xl font-bold text-text-primary tracking-tight">{title}</h1>
+      <div className="flex items-center gap-3">
+        <h1 className="text-xl font-bold text-text-primary tracking-tight">{title}</h1>
+        <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-medium ${status.color} bg-surface-hover/50`} title={status.label}>
+          <StatusIcon className={`h-3 w-3 ${backendStatus === "connecting" ? "animate-spin" : ""}`} />
+          <span className="hidden lg:inline">{status.label}</span>
+        </div>
+      </div>
       
       <div className="flex items-center gap-4">
         <Button 
@@ -61,8 +75,12 @@ export function Topbar() {
           )}
         </button>
 
-        <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-accent to-accent-light flex items-center justify-center text-text-primary font-bold text-sm ml-1 ring-2 ring-border shadow-sm shadow-accent-glow cursor-pointer transition-transform hover:scale-105">
-          R
+        <div className="h-8 w-8 rounded-xl overflow-hidden text-text-primary font-bold text-sm ml-1 ring-2 ring-border shadow-sm shadow-accent-glow cursor-pointer transition-transform hover:scale-105">
+          <img 
+            src="/resolvaLogo.jpg" 
+            alt="Resolva" 
+            className="h-full w-full object-cover" 
+          />
         </div>
       </div>
     </header>

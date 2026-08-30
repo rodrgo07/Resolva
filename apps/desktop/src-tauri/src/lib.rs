@@ -83,14 +83,22 @@ fn find_backend_and_python() -> Option<(PathBuf, PathBuf)> {
     if let Ok(cwd) = std::env::current_dir() {
         search_dirs.push(cwd);
     }
-    search_dirs.push(PathBuf::from(r"C:\Users\thega\Documents\Resolva"));
+    
+    // Dev paths
+    if let Ok(home) = std::env::var("USERPROFILE") {
+        search_dirs.push(PathBuf::from(home).join("Documents").join("Resolva"));
+    }
+    if let Ok(home) = std::env::var("HOME") {
+        search_dirs.push(PathBuf::from(home).join("Documents").join("Resolva"));
+    }
 
-    for base in search_dirs {
+    for base in &search_dirs {
         for ancestor in base.ancestors() {
             // Caso 1: Monorepo dev (.venv/Scripts/python.exe + apps/backend)
             let venv_py = ancestor.join(".venv").join("Scripts").join("python.exe");
             let apps_backend = ancestor.join("apps").join("backend");
             if venv_py.exists() && apps_backend.exists() {
+                println!("[RESOLVA] Found dev environment: python={:?} backend={:?}", venv_py, apps_backend);
                 return Some((venv_py, apps_backend));
             }
 
@@ -98,17 +106,47 @@ fn find_backend_and_python() -> Option<(PathBuf, PathBuf)> {
             let bundled_py = ancestor.join("python").join("python.exe");
             let bundled_backend = ancestor.join("backend");
             if bundled_py.exists() && bundled_backend.exists() {
+                println!("[RESOLVA] Found bundled environment: python={:?} backend={:?}", bundled_py, bundled_backend);
                 return Some((bundled_py, bundled_backend));
             }
 
             // Caso 3: .venv local com backend
             let local_venv_py = ancestor.join(".venv").join("Scripts").join("python.exe");
             if local_venv_py.exists() && bundled_backend.exists() {
+                println!("[RESOLVA] Found local venv: python={:?} backend={:?}", local_venv_py, bundled_backend);
                 return Some((local_venv_py, bundled_backend));
             }
         }
     }
 
+    // Caso 4: Procurar python no PATH
+    if let Ok(output) = std::process::Command::new("where").arg("python").output() {
+        if let Some(first_line) = String::from_utf8_lossy(&output.stdout).lines().next() {
+            let python_path = PathBuf::from(first_line.trim());
+            if python_path.exists() {
+                // Tentar encontrar o backend relativo ao exe
+                if let Ok(exe) = std::env::current_exe() {
+                    if let Some(exe_dir) = exe.parent() {
+                        // Procurar backend em diretórios pais
+                        for ancestor in exe_dir.ancestors() {
+                            let apps_backend = ancestor.join("apps").join("backend");
+                            if apps_backend.exists() {
+                                println!("[RESOLVA] Found via PATH + ancestor: python={:?} backend={:?}", python_path, apps_backend);
+                                return Some((python_path, apps_backend));
+                            }
+                            let backend = ancestor.join("backend");
+                            if backend.exists() && backend.join("app").join("main.py").exists() {
+                                println!("[RESOLVA] Found via PATH + ancestor: python={:?} backend={:?}", python_path, backend);
+                                return Some((python_path, backend));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    eprintln!("[RESOLVA] Python or backend not found in any search path");
     None
 }
 
