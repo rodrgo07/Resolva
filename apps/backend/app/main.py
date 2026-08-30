@@ -48,10 +48,11 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS configuration
+# CORS configuration - aceita qualquer origin (Tauri webview usa https://tauri.localhost)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins_list if settings.ALLOWED_ORIGINS != "*" else ["*"],
+    allow_origins=settings.allowed_origins_list,
+    allow_origin_regex=r".*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -25,14 +25,15 @@ class ApiClient {
     const url = `${this.baseUrl}${endpoint}`;
 
     const isGet = !options.method || options.method === "GET";
+    const { headers: optionHeaders, ...restOptions } = options;
     const config: RequestInit = {
+      ...restOptions,
       headers: isGet
-        ? {}
+        ? { ...optionHeaders }
         : {
             "Content-Type": "application/json",
-            ...options.headers,
+            ...optionHeaders,
           },
-      ...options,
     };
 
     try {
