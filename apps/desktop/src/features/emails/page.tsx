@@ -126,7 +126,28 @@ export function EmailsPage() {
       const res = await api.post<{ authorization_url: string; state: string }>(`/api/emails/connect/${providerName}/init`);
       if (res?.authorization_url) {
         window.open(res.authorization_url, "_blank");
-        toast({ title: `Navegador aberto para autenticação ${providerName === "gmail" ? "Google" : "Microsoft"}`, type: "info" });
+        toast({ title: `Navegador aberto para autenticação ${providerName === "gmail" ? "Google" : "Microsoft"}. Após autorizar, a conta será detectada automaticamente.`, type: "info" });
+
+        // Poll para detectar quando a conta é conectada via callback
+        const previousCount = accounts.length;
+        let attempts = 0;
+        const maxAttempts = 30;
+        const pollInterval = setInterval(async () => {
+          attempts++;
+          try {
+            const accs = await api.get<EmailAccount[]>("/api/emails/accounts");
+            if (accs && accs.length > previousCount) {
+              clearInterval(pollInterval);
+              toast({ title: `Conta ${providerName.toUpperCase()} conectada com sucesso!`, type: "success" });
+              await loadData();
+            }
+          } catch {
+            //ignora erros de poll
+          }
+          if (attempts >= maxAttempts) {
+            clearInterval(pollInterval);
+          }
+        }, 2000);
       }
     } catch {
       // Mock account fallback para testes locais

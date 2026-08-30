@@ -1,6 +1,7 @@
 ﻿from fastapi import APIRouter, Depends, HTTPException, Query, status
 from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from app.database import get_db
 from app.services.email_service import EmailService
 from app.repositories.email_repository import EmailRepository
@@ -41,7 +42,56 @@ async def init_oauth_connect(
         provider=data["provider"]
     )
 
-# Endpoint genérico OAuth Callback (Gmail ou Outlook)
+# Endpoint genérico OAuth Callback - GET (browser redirect from OAuth provider)
+from fastapi.responses import HTMLResponse
+
+@router.get("/connect/{provider}/callback")
+async def callback_oauth_connect_get(
+    provider: str,
+    code: str = Query(...),
+    state: str = Query(""),
+    redirect_uri: str = "http://localhost:8700/api/emails/connect/callback",
+    service: EmailService = Depends(get_email_service)
+):
+    """Recebe o redirect OAuth via GET do provedor (Google/Microsoft) e processa o code."""
+    try:
+        account = await service.complete_oauth(
+            provider_name=provider.lower().strip(),
+            code=code,
+            redirect_uri=redirect_uri
+        )
+        provider_label = "Google" if provider.lower() == "gmail" else "Microsoft"
+        return HTMLResponse(content=f"""
+        <!DOCTYPE html>
+        <html>
+        <head><title>Resolva - Conta Conectada</title></head>
+        <body style="font-family:system-ui; display:flex; align-items:center; justify-content:center; height:100vh; margin:0; background:#0a0a0a; color:#fff;">
+            <div style="text-align:center; max-width:400px;">
+                <div style="font-size:48px; margin-bottom:16px;">&#10003;</div>
+                <h2 style="margin:0 0 8px;">Conta {provider_label} conectada!</h2>
+                <p style="color:#888; margin:0 0 24px;">{account.email_address}</p>
+                <p style="color:#666; font-size:14px;">Pode fechar esta janela.</p>
+            </div>
+        </body>
+        </html>
+        """)
+    except Exception as e:
+        return HTMLResponse(content=f"""
+        <!DOCTYPE html>
+        <html>
+        <head><title>Resolva - Erro</title></head>
+        <body style="font-family:system-ui; display:flex; align-items:center; justify-content:center; height:100vh; margin:0; background:#0a0a0a; color:#fff;">
+            <div style="text-align:center; max-width:400px;">
+                <div style="font-size:48px; margin-bottom:16px;">&#10007;</div>
+                <h2 style="margin:0 0 8px;">Erro ao conectar conta</h2>
+                <p style="color:#888; margin:0 0 24px;">{str(e)}</p>
+                <p style="color:#666; font-size:14px;">Pode fechar esta janela e tentar novamente.</p>
+            </div>
+        </body>
+        </html>
+        """, status_code=400)
+
+# Endpoint POST mantido para compatibilidade (frontend pode chamar diretamente)
 @router.post("/connect/{provider}/callback", response_model=EmailAccountResponse)
 async def callback_oauth_connect(
     provider: str,
@@ -111,8 +161,22 @@ async def sync_emails(
 ):
     accounts = await service.get_accounts()
     if not accounts:
-        account = await connect_mock_account("mock", service, service.db)
-        accounts = [account]
+        # Cria conta mock diretamente sem chamar endpoint
+        from app.models.email import EmailAccount
+        email_address = "usuario@resolva.local"
+        res = await service.db.execute(select(EmailAccount).where((EmailAccount.email_address == email_address) & (EmailAccount.provider == "mock")))
+        acc = res.scalars().first()
+        if not acc:
+            acc = EmailAccount(provider="mock", email_address=email_address, credentials_encrypted={}, is_active=True, sync_status="idle")
+            service.db.add(acc)
+            await service.db.commit()
+            await service.db.refresh(acc)
+        await token_storage.save_tokens(acc.id, {"access_token": "mock_token_mock", "refresh_token": "mock_refresh_mock"})
+        try:
+            await service.sync_account_emails(acc.id)
+        except Exception:
+            pass
+        accounts = [acc]
 
     results = []
     target_accounts = [
