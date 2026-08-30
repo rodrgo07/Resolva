@@ -1,76 +1,117 @@
-# 🟣 RESOLVA — Centro de Comando Pessoal
+# RESOLVA
 
-> "O que eu preciso saber, fazer ou resolver agora?"
+O **RESOLVA** é um centro de comando pessoal para desktop que reúne produtividade, tarefas, estudos, finanças, agenda, e-mails, IA orientada a ferramentas e automações locais em uma única interface.
 
-O **RESOLVA** é um assistente pessoal digital para desktop que centraliza produtividade, tarefas, rotina de estudos, finanças pessoais, agenda, automações de sistema e inteligência artificial orientada a ferramentas.
+## Visão geral
 
----
+O projeto é dividido em dois aplicativos principais:
 
-## 🏗️ Arquitetura e Stack
+- `apps/desktop`: interface desktop em React + Tauri
+- `apps/backend`: API assíncrona em FastAPI com persistência em SQLite
 
-- **Desktop Shell:** Tauri v2 (Rust)
-- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS v4, Zustand, Lucide React, Recharts
-- **Backend:** Python 3.11+, FastAPI (assíncrono), SQLAlchemy 2.0, Alembic, Pydantic v2
-- **Banco de Dados:** SQLite (com driver assíncrono `aiosqlite`)
-- **Engine de IA:** Camada de orquestração com abstração de provedores (`Mock`, `OpenAI`, `Local`) e barramento seguro de permissões para AI Tools.
-- **Automação:** Executor de rotinas locais com lista de comandos permitidos e logs de auditoria.
+Além do fluxo principal de organização pessoal, o RESOLVA já inclui um módulo de automações com rotinas agendadas, templates prontos, kill switch global e validações de segurança.
 
----
+## Stack
 
-## 🚀 Como Iniciar o Projeto
+- Desktop shell: Tauri v2 com Rust
+- Frontend: React 19, TypeScript, Vite, Tailwind CSS v4, Zustand, React Router, Lucide React, Recharts
+- Backend: Python 3.11+, FastAPI, SQLAlchemy 2.0, Alembic, Pydantic v2
+- Banco de dados: SQLite com `aiosqlite`
+- IA: camada de orquestração com provedores `Mock`, `OpenAI` e `Local`
+- Integrações: e-mail, notificações, calendário, tarefas, estudos e finanças
+
+## Funcionalidades
+
+- Dashboard com visão consolidada do dia
+- Gestão de tarefas, estudos, finanças, e-mails, calendário e atividade
+- Assistente de IA com ferramentas controladas por permissões
+- Automações com templates, scheduler persistente e auditoria
+- Kill switch global para pausar rotinas em execução
+- Painel desktop com atalhos e navegação lateral
+
+## Começando
 
 ### Pré-requisitos
-- Node.js ≥ 18
-- Python ≥ 3.11
-- Rust & Cargo (para build nativo do Tauri)
 
-### 1. Configuração Inicial
+- Node.js 18 ou superior
+- Python 3.11 ou superior
+- Rust e Cargo, para o build do Tauri
 
-Execute o script de setup para criar o ambiente virtual Python, instalar dependências e preparar o arquivo `.env`:
+### 1. Instalação inicial
+
+Execute o script de setup para criar o ambiente virtual, instalar dependências e gerar o arquivo `.env` a partir do exemplo:
 
 ```powershell
 .\scripts\setup.ps1
 ```
 
-### 2. Executar em Modo de Desenvolvimento
+### 2. Desenvolvimento
 
-Inicie o backend e o frontend simultaneamente:
+Inicie backend e frontend ao mesmo tempo:
 
 ```powershell
 .\scripts\dev.ps1
 ```
 
-- **Frontend:** [http://localhost:1420](http://localhost:1420)
-- **Backend API:** [http://127.0.0.1:8700](http://127.0.0.1:8700)
-- **Documentação OpenAPI/Swagger:** [http://127.0.0.1:8700/docs](http://127.0.0.1:8700/docs)
+Durante a execução, os serviços ficam disponíveis em:
 
----
+- Frontend: http://localhost:1420
+- Backend API: http://127.0.0.1:8700
+- Swagger/OpenAPI: http://127.0.0.1:8700/docs
 
-## 🧪 Testes
+## Variáveis de ambiente
 
-### Backend (pytest)
+O arquivo `.env.example` documenta as principais variáveis do projeto. As mais importantes são:
+
+- `BACKEND_HOST` e `BACKEND_PORT`
+- `DATABASE_URL`
+- `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`
+- `SECRET_KEY`
+- `ALLOWED_ORIGINS`
+- credenciais opcionais para Gmail e Outlook
+
+## Testes
+
+### Backend
+
 ```powershell
 $env:PYTHONPATH="apps/backend"
 .\.venv\Scripts\python.exe -m pytest apps\backend\tests
 ```
 
-### Frontend (Typecheck & Build)
+### Frontend
+
 ```powershell
 cd apps/desktop
 npm run build
 ```
 
----
+## Automações
 
-## 📂 Estrutura do Repositório
+O módulo de automações suporta:
 
-```
+- templates prontos para rotina da manhã, foco e revisão semanal
+- execução manual e agendada
+- ações tipadas e restritas por whitelist
+- confirmação obrigatória para fluxos de maior risco
+- kill switch global para suspensão imediata
+
+Consulte `docs/automations.md` para a visão técnica do módulo.
+
+## Estrutura do repositório
+
+```text
 resolva/
 ├── apps/
-│   ├── desktop/          # Frontend React + Tauri Shell
-│   └── backend/          # Backend FastAPI + SQLAlchemy + AI + Automações
-├── docs/                 # Documentações de arquitetura, banco e roadmap
-├── scripts/              # Scripts de setup e inicialização (PowerShell)
-├── .env.example          # Variáveis de ambiente de exemplo
+│   ├── desktop/          # Frontend React + Tauri
+│   └── backend/          # API FastAPI, IA, automações e integrações
+├── docs/                  # Documentação técnica
+├── scripts/               # Scripts PowerShell de setup e dev
+├── .env.example           # Exemplo de variáveis de ambiente
 └── README.md
 ```
+
+## Documentação útil
+
+- `docs/automations.md`
+- `apps/desktop/README.md`

@@ -1,294 +1,410 @@
-ï»¿import { useEffect, useState } from "react";
-import { getGreeting, formatCurrency } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { getGreeting } from "@/lib/utils";
 import { useAppStore } from "@/stores/app-store";
 import { api } from "@/lib/api-client";
 import {
-  CheckSquare,
-  Wallet,
-  BookOpen,
-  Mail,
-  TrendingUp,
-  AlertTriangle,
-  Sparkles,
-  CalendarDays,
-  Flame,
-  ArrowRight
+  CheckSquare, Wallet, BookOpen, Mail, 
+  AlertTriangle, Sparkles, CalendarDays, 
+  ArrowRight, Play, Clock, Zap, RefreshCw,
+  ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { LoadingState } from "@/components/shared/loading-state";
 
-interface TasksSummary {
-  total: number;
-  pending: number;
-  completed: number;
-  overdue: number;
+interface DashboardOverview {
+  current_time: string;
+  today_date: string;
+  tasks: {
+    total: number;
+    pending: number;
+    overdue: number;
+    completed: number;
+  };
+  calendar: {
+    events_today_count: number;
+    next_event: {
+      id: number;
+      title: string;
+      start_time: string;
+      start_date: string;
+    } | null;
+  };
+  emails: {
+    unread_count: number;
+    critical_count: number;
+    important_count: number;
+  };
+  studies: {
+    minutes_today: number;
+    hours_today: number;
+    hours_week: number;
+  };
+  finances: {
+    expense_today: number;
+    expense_week: number;
+  };
+  automations: {
+    active_count: number;
+  };
 }
 
-interface FinancesSummary {
-  total_income: number;
-  total_expense: number;
-  balance: number;
-}
-
-interface StudiesSummary {
-  hours_today: number;
-  hours_this_week: number;
-  hours_this_month: number;
-  by_subject?: unknown[];
-}
-
-interface EmailsSummary {
-  unread_count: number;
-  important_count: number;
-  needs_reply_count: number;
-}
-
-function SummaryCard({
-  icon: Icon,
-  title,
-  children,
-  color,
-  onClick,
-}: {
-  icon: React.ElementType;
+interface NowCardData {
+  type: string;
+  badge: string;
   title: string;
-  children: React.ReactNode;
-  color: string;
-  onClick?: () => void;
-}) {
-  return (
-    <div 
-      onClick={onClick}
-      className="glass-card p-5 hover:border-surface-600/50 hover:bg-surface-900/80 transition-all duration-200 cursor-pointer flex flex-col justify-between group"
-    >
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${color}`}>
-              <Icon className="w-5 h-5" />
-            </div>
-            <h3 className="text-sm font-semibold text-surface-200 group-hover:text-white transition-colors">{title}</h3>
-          </div>
-          <ArrowRight className="w-4 h-4 text-surface-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-        </div>
-        <div className="space-y-2">{children}</div>
-      </div>
-    </div>
-  );
+  description: string;
+  action_label: string;
+  action_target: "tasks" | "emails" | "calendar" | "studies" | "finances" | "ai" | "automations";
+  priority_level: "critical" | "high" | "medium" | "normal" | "low";
 }
 
-function StatLine({ label, value, sub, highlight }: { label: string; value: string | number; sub?: string; highlight?: boolean }) {
-  return (
-    <div className="flex items-center justify-between py-0.5">
-      <span className="text-xs text-surface-400">{label}</span>
-      <div className="text-right">
-        <span className={`text-xs font-semibold ${highlight ? "text-red-400 font-bold" : "text-surface-100"}`}>
-          {value}
-        </span>
-        {sub && <span className="text-[10px] text-surface-500 ml-1">{sub}</span>}
-      </div>
-    </div>
-  );
+interface TimelineItem {
+  time: string;
+  category: string;
+  title: string;
+  description: string;
+  icon: string;
+}
+
+interface RecommendationItem {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  action: string;
+  target: "tasks" | "emails" | "calendar" | "studies" | "finances" | "ai" | "automations";
+  variant: "destructive" | "warning" | "info" | "secondary";
 }
 
 export function DashboardPage() {
   const { userName, setCurrentPage } = useAppStore();
   const { greeting } = getGreeting();
 
-  const [tasksSummary, setTasksSummary] = useState<TasksSummary>({ total: 0, pending: 0, completed: 0, overdue: 0 });
-  const [financesSummary, setFinancesSummary] = useState<FinancesSummary>({ total_income: 0, total_expense: 0, balance: 0 });
-  const [studiesSummary, setStudiesSummary] = useState<StudiesSummary>({ hours_today: 0, hours_this_week: 0, hours_this_month: 0 });
-  const [emailsSummary, setEmailsSummary] = useState<EmailsSummary>({ unread_count: 0, important_count: 0, needs_reply_count: 0 });
+  const [overview, setOverview] = useState<DashboardOverview | null>(null);
+  const [nowCard, setNowCard] = useState<NowCardData | null>(null);
+  const [timeline, setTimeline] = useState<TimelineItem[]>([]);
+  const [recommendations, setRecommendations] = useState<RecommendationItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+
+  const loadDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      setHasError(false);
+
+      const [ovRes, nowRes, tlRes, recRes] = await Promise.allSettled([
+        api.get<DashboardOverview>("/api/dashboard/overview"),
+        api.get<NowCardData>("/api/dashboard/now"),
+        api.get<TimelineItem[]>("/api/dashboard/timeline"),
+        api.get<RecommendationItem[]>("/api/dashboard/recommendations"),
+      ]);
+
+      if (ovRes.status === "fulfilled") setOverview(ovRes.value);
+      if (nowRes.status === "fulfilled") setNowCard(nowRes.value);
+      if (tlRes.status === "fulfilled") setTimeline(tlRes.value || []);
+      if (recRes.status === "fulfilled") setRecommendations(recRes.value || []);
+    } catch {
+      setHasError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function loadDashboardData() {
-      try {
-        const [tasks, finances, studies, emails] = await Promise.allSettled([
-          api.get<TasksSummary>("/api/tasks/summary"),
-          api.get<FinancesSummary>("/api/finances/summary"),
-          api.get<StudiesSummary>("/api/studies/summary"),
-          api.get<EmailsSummary>("/api/emails/summary"),
-        ]);
-
-        if (tasks.status === "fulfilled") setTasksSummary(tasks.value);
-        if (finances.status === "fulfilled") setFinancesSummary(finances.value);
-        if (studies.status === "fulfilled") setStudiesSummary(studies.value);
-        if (emails.status === "fulfilled") setEmailsSummary(emails.value);
-      } catch (err) {
-        console.error("Erro ao carregar dados do dashboard:", err);
-      }
-    }
-
     loadDashboardData();
   }, []);
 
+  if (isLoading) {
+    return <LoadingState message="Carregando sua Central de Comando Inteligente..." />;
+  }
+
+  if (hasError || !overview) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center glass-card">
+        <AlertTriangle className="w-10 h-10 text-red-400 mb-3" />
+        <h3 className="text-base font-bold text-white mb-1">Não foi possível carregar os dados operacionais</h3>
+        <p className="text-xs text-surface-400 mb-4">Verifique se o backend do Resolva está em execução.</p>
+        <Button onClick={loadDashboardData} size="sm" className="gap-2">
+          <RefreshCw className="w-3.5 h-3.5" />
+          Tentar Novamente
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Greeting Header & Agent Callout */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-surface-800/40 pb-6">
+    <div className="space-y-6 animate-fade-in pb-8">
+      {/* 1. Header / Saudação Contextual */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-surface-800/40 pb-5">
         <div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider">
+              Central de Comando Ativa
+            </span>
+          </div>
+          <h1 className="text-3xl font-extrabold text-white tracking-tight mt-0.5">
             {greeting}, <span className="text-accent-400">{userName}</span>.
           </h1>
-          <p className="text-surface-400 mt-1 text-sm">
-            Aqui estÃ¡ o panorama completo da sua rotina hoje.
+          <p className="text-surface-400 text-xs mt-1">
+            Aqui está o que merece sua atenção exatamente agora.
           </p>
         </div>
+
         <div className="flex items-center gap-3">
           <Button
-            size="sm"
             onClick={() => setCurrentPage("ai")}
-            className="gap-2 bg-accent-600 hover:bg-accent-500 shadow-md shadow-accent-600/20 text-xs font-bold"
+            className="gap-2 bg-accent-600 hover:bg-accent-500 shadow-lg shadow-accent-600/25 font-bold text-xs"
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            Organizar Meu Dia com Agent
+            <Sparkles className="w-4 h-4" />
+            Organizar Meu Dia
           </Button>
+
           <div className="flex items-center gap-2 text-xs font-medium text-surface-400 glass px-3 py-1.5 rounded-lg border border-surface-700/50 hidden md:flex">
-            <CalendarDays className="w-4 h-4 text-accent-400" />
+            <CalendarDays className="w-3.5 h-3.5 text-accent-400" />
             <span>{new Intl.DateTimeFormat("pt-BR", { dateStyle: "full" }).format(new Date())}</span>
           </div>
         </div>
       </div>
 
-      {/* Summary Cards Grid */}
+      {/* 2. Card "AGORA" — Foco Imediato */}
+      {nowCard && (
+        <div className="glass-card p-5 border-l-4 border-l-accent-500 bg-gradient-to-r from-accent-600/10 via-surface-900/40 to-surface-900/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <Badge variant="default" className="text-[10px] uppercase font-mono tracking-wider bg-accent-500/20 text-accent-300 border border-accent-500/40">
+                {nowCard.badge}
+              </Badge>
+              <span className="text-[11px] text-surface-400">Recomendação do Resolva Agent</span>
+            </div>
+            <h2 className="text-xl font-bold text-white tracking-tight">{nowCard.title}</h2>
+            <p className="text-xs text-surface-300 max-w-xl">{nowCard.description}</p>
+          </div>
+
+          <Button
+            size="sm"
+            onClick={() => setCurrentPage(nowCard.action_target)}
+            className="gap-1.5 font-bold shrink-0 self-start sm:self-center shadow-md shadow-accent-600/20"
+          >
+            <span>{nowCard.action_label}</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      )}
+
+      {/* 3. Resumo Operacional do Dia ("Seu Dia") */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <SummaryCard
-          icon={CheckSquare}
-          title="Tarefas"
-          color="bg-accent-500/10 text-accent-400"
+        {/* Tarefas */}
+        <div 
           onClick={() => setCurrentPage("tasks")}
+          className="glass-card p-4 hover:border-surface-600 transition-all cursor-pointer flex flex-col justify-between group space-y-3"
         >
-          <StatLine label="Pendentes" value={tasksSummary.pending} />
-          <StatLine label="Atrasadas" value={tasksSummary.overdue} highlight={tasksSummary.overdue > 0} />
-          <StatLine label="ConcluÃ­das" value={tasksSummary.completed} />
-        </SummaryCard>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-lg bg-accent-500/10 text-accent-400">
+                <CheckSquare className="w-4 h-4" />
+              </div>
+              <h3 className="text-sm font-bold text-white">Tarefas</h3>
+            </div>
+            <ChevronRight className="w-4 h-4 text-surface-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+          <div className="space-y-1 text-xs">
+            <div className="flex justify-between text-surface-300">
+              <span>Pendentes:</span>
+              <span className="font-bold text-white">{overview.tasks.pending}</span>
+            </div>
+            <div className="flex justify-between text-surface-300">
+              <span>Atrasadas:</span>
+              <span className={`font-bold ${overview.tasks.overdue > 0 ? "text-red-400" : "text-surface-400"}`}>
+                {overview.tasks.overdue}
+              </span>
+            </div>
+            <div className="flex justify-between text-surface-300">
+              <span>Concluídas:</span>
+              <span className="font-bold text-emerald-400">{overview.tasks.completed}</span>
+            </div>
+          </div>
+        </div>
 
-        <SummaryCard
-          icon={Wallet}
-          title="FinanÃ§as"
-          color="bg-green-500/10 text-green-400"
-          onClick={() => setCurrentPage("finances")}
+        {/* Agenda */}
+        <div 
+          onClick={() => setCurrentPage("calendar")}
+          className="glass-card p-4 hover:border-surface-600 transition-all cursor-pointer flex flex-col justify-between group space-y-3"
         >
-          <StatLine label="Receitas" value={formatCurrency(financesSummary.total_income)} />
-          <StatLine label="Despesas" value={formatCurrency(financesSummary.total_expense)} />
-          <StatLine label="Saldo Atual" value={formatCurrency(financesSummary.balance)} />
-        </SummaryCard>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
+                <CalendarDays className="w-4 h-4" />
+              </div>
+              <h3 className="text-sm font-bold text-white">Agenda</h3>
+            </div>
+            <ChevronRight className="w-4 h-4 text-surface-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+          <div className="space-y-1 text-xs">
+            <div className="flex justify-between text-surface-300">
+              <span>Eventos hoje:</span>
+              <span className="font-bold text-white">{overview.calendar.events_today_count}</span>
+            </div>
+            <div className="text-[11px] text-surface-400 truncate pt-1">
+              Próximo: <strong className="text-surface-200">{overview.calendar.next_event?.title || "Nenhum"}</strong>
+            </div>
+          </div>
+        </div>
 
-        <SummaryCard
-          icon={BookOpen}
-          title="Estudos"
-          color="bg-blue-500/10 text-blue-400"
-          onClick={() => setCurrentPage("studies")}
-        >
-          <StatLine label="Hoje" value={`${studiesSummary.hours_today.toFixed(1)}h`} />
-          <StatLine label="Esta Semana" value={`${studiesSummary.hours_this_week.toFixed(1)}h`} />
-          <StatLine label="Este MÃªs" value={`${studiesSummary.hours_this_month.toFixed(1)}h`} />
-        </SummaryCard>
-
-        <SummaryCard
-          icon={Mail}
-          title="Emails (Gmail + Outlook)"
-          color="bg-orange-500/10 text-orange-400"
+        {/* E-mails */}
+        <div 
           onClick={() => setCurrentPage("emails")}
+          className="glass-card p-4 hover:border-surface-600 transition-all cursor-pointer flex flex-col justify-between group space-y-3"
         >
-          <StatLine label="NÃ£o lidos" value={emailsSummary.unread_count} />
-          <StatLine label="Importantes" value={emailsSummary.important_count} />
-          <StatLine label="Precisam de resposta" value={emailsSummary.needs_reply_count} highlight={emailsSummary.needs_reply_count > 0} />
-        </SummaryCard>
-      </div>
-
-      {/* Resolva Recomenda â€” RecomendaÃ§Ãµes DinÃ¢micas */}
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkles className="w-5 h-5 text-accent-400" />
-          <h2 className="text-lg font-bold text-white tracking-tight">
-            Resolva recomenda
-          </h2>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-lg bg-orange-500/10 text-orange-400">
+                <Mail className="w-4 h-4" />
+              </div>
+              <h3 className="text-sm font-bold text-white">E-mails</h3>
+            </div>
+            <ChevronRight className="w-4 h-4 text-surface-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+          <div className="space-y-1 text-xs">
+            <div className="flex justify-between text-surface-300">
+              <span>Não lidos:</span>
+              <span className="font-bold text-white">{overview.emails.unread_count}</span>
+            </div>
+            <div className="flex justify-between text-surface-300">
+              <span>Urgentes / Críticos:</span>
+              <span className={`font-bold ${overview.emails.critical_count > 0 ? "text-red-400" : "text-surface-400"}`}>
+                {overview.emails.critical_count}
+              </span>
+            </div>
+          </div>
         </div>
 
+        {/* Estudos & Finanças */}
+        <div 
+          onClick={() => setCurrentPage("studies")}
+          className="glass-card p-4 hover:border-surface-600 transition-all cursor-pointer flex flex-col justify-between group space-y-3"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
+                <BookOpen className="w-4 h-4" />
+              </div>
+              <h3 className="text-sm font-bold text-white">Estudos & Metas</h3>
+            </div>
+            <ChevronRight className="w-4 h-4 text-surface-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+          <div className="space-y-1 text-xs">
+            <div className="flex justify-between text-surface-300">
+              <span>Estudado hoje:</span>
+              <span className="font-bold text-white">{overview.studies.hours_today}h</span>
+            </div>
+            <div className="flex justify-between text-surface-300">
+              <span>Esta semana:</span>
+              <span className="font-bold text-accent-400">{overview.studies.hours_week}h</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Timeline do Dia + Ações Rápidas Split View */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Timeline */}
+        <div className="lg:col-span-2 glass-card p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-surface-800 pb-3">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <Clock className="w-4 h-4 text-accent-400" />
+              Timeline & Fluxo do Dia
+            </h3>
+            <span className="text-[11px] text-surface-400">Ordem cronológica</span>
+          </div>
+
+          <div className="space-y-3 max-h-[360px] overflow-y-auto pr-2">
+            {timeline.map((item, idx) => (
+              <div key={idx} className="flex items-start gap-3 p-2.5 rounded-lg bg-surface-900/60 border border-surface-800/80 text-xs">
+                <div className="px-2 py-1 rounded bg-surface-800 font-mono text-[11px] font-bold text-accent-400 whitespace-nowrap">
+                  {item.time}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-white truncate">{item.title}</h4>
+                  <p className="text-surface-400 text-[11px] truncate">{item.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Quick Actions Shortcuts */}
+        <div className="glass-card p-5 space-y-3">
+          <h3 className="text-sm font-bold text-white flex items-center gap-2 border-b border-surface-800 pb-3">
+            <Zap className="w-4 h-4 text-yellow-400" />
+            Ações Rápidas
+          </h3>
+
+          <div className="space-y-2">
+            {[
+              { label: "+ Nova Tarefa", target: "tasks" as const, icon: CheckSquare },
+              { label: "+ Registrar Gasto", target: "finances" as const, icon: Wallet },
+              { label: "+ Novo Compromisso", target: "calendar" as const, icon: CalendarDays },
+              { label: "Iniciar Pomodoro", target: "studies" as const, icon: Play },
+              { label: "Ver E-mails (Gmail & Outlook)", target: "emails" as const, icon: Mail },
+              { label: "Rotinas & Automações", target: "automations" as const, icon: Zap },
+              { label: "Perguntar ao Agent", target: "ai" as const, icon: Sparkles },
+            ].map((btn, i) => {
+              const Icon = btn.icon;
+              return (
+                <button
+                  key={i}
+                  onClick={() => setCurrentPage(btn.target)}
+                  className="w-full flex items-center justify-between p-2.5 rounded-lg border border-surface-800 bg-surface-900/40 hover:bg-surface-800/80 hover:border-accent-500/30 text-xs font-medium text-surface-200 transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2">
+                    <Icon className="w-3.5 h-3.5 text-accent-400" />
+                    <span>{btn.label}</span>
+                  </div>
+                  <ArrowRight className="w-3.5 h-3.5 text-surface-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* 5. Resolva Recomenda — Recomendações Dinâmicas */}
+      {recommendations.length > 0 && (
         <div className="space-y-3">
-          {tasksSummary.overdue > 0 && (
-            <RecommendationCard
-              icon={AlertTriangle}
-              color="text-red-400 bg-red-500/10 border-red-500/20"
-              message={`VocÃª possui ${tasksSummary.overdue} tarefa(s) com prazo atrasado que exigem atenÃ§Ã£o imediata.`}
-              action="Ver Tarefas Atrasadas"
-              onClick={() => setCurrentPage("tasks")}
-            />
-          )}
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-accent-400" />
+            <h2 className="text-base font-bold text-white tracking-tight">
+              Resolva Recomenda
+            </h2>
+          </div>
 
-          {tasksSummary.pending > 0 && tasksSummary.overdue === 0 && (
-            <RecommendationCard
-              icon={CheckSquare}
-              color="text-accent-400 bg-accent-500/10 border-accent-500/20"
-              message={`VocÃª tem ${tasksSummary.pending} tarefa(s) pendentes para concluir hoje.`}
-              action="Ver Tarefas"
-              onClick={() => setCurrentPage("tasks")}
-            />
-          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {recommendations.map((rec) => (
+              <div
+                key={rec.id}
+                className="glass-card p-4 flex items-center justify-between gap-3 hover:border-surface-600 transition-colors"
+              >
+                <div className="space-y-0.5 min-w-0">
+                  <h4 className="text-xs font-bold text-white truncate">{rec.title}</h4>
+                  <p className="text-[11px] text-surface-400 line-clamp-1">{rec.message}</p>
+                </div>
 
-          {studiesSummary.hours_this_week < 5 && (
-            <RecommendationCard
-              icon={Flame}
-              color="text-yellow-400 bg-yellow-500/10 border-yellow-500/20"
-              message={`VocÃª acumulou ${studiesSummary.hours_this_week.toFixed(1)}h de estudo nesta semana. Inicie um Pomodoro para avanÃ§ar na sua meta!`}
-              action="Estudar Agora"
-              onClick={() => setCurrentPage("studies")}
-            />
-          )}
-
-          {financesSummary.total_expense > 0 && (
-            <RecommendationCard
-              icon={TrendingUp}
-              color="text-green-400 bg-green-500/10 border-green-500/20"
-              message={`Seu saldo atual Ã© de ${formatCurrency(financesSummary.balance)}. Mantenha o acompanhamento dos orÃ§amentos mensais.`}
-              action="Ver FinanÃ§as"
-              onClick={() => setCurrentPage("finances")}
-            />
-          )}
-
-          {emailsSummary.needs_reply_count > 0 && (
-            <RecommendationCard
-              icon={Mail}
-              color="text-orange-400 bg-orange-500/10 border-orange-500/20"
-              message={`Existem ${emailsSummary.needs_reply_count} email(s) classificados como prioritÃ¡rios aguardando resposta.`}
-              action="Revisar Emails"
-              onClick={() => setCurrentPage("emails")}
-            />
-          )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setCurrentPage(rec.target)}
+                  className="text-xs h-7 gap-1 border-surface-700 hover:text-white shrink-0"
+                >
+                  <span>{rec.action}</span>
+                  <ChevronRight className="w-3 h-3" />
+                </Button>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function RecommendationCard({
-  icon: Icon,
-  message,
-  action,
-  onClick,
-  color = "text-accent-400 bg-accent-500/10 border-accent-500/20",
-}: {
-  icon: React.ElementType;
-  message: string;
-  action: string;
-  onClick: () => void;
-  color?: string;
-}) {
-  return (
-    <div className="glass-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-surface-600 transition-colors duration-200">
-      <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-lg shrink-0 border ${color}`}>
-          <Icon className="w-4 h-4" />
-        </div>
-        <p className="text-sm text-surface-200 leading-snug">{message}</p>
-      </div>
-      <button
-        onClick={onClick}
-        className="text-xs font-semibold text-accent-400 hover:text-accent-300 transition-colors whitespace-nowrap self-end sm:self-center cursor-pointer flex items-center gap-1"
-      >
-        <span>{action}</span>
-        <ArrowRight className="w-3.5 h-3.5" />
-      </button>
+      )}
     </div>
   );
 }
