@@ -29,5 +29,10 @@ from .workflow import (
     WorkflowConfirmation, WorkflowRecommendation, WorkflowStatus,
     WorkflowSafetyLevel, WorkflowExecutionPolicy
 )
+from .orchestration import (
+    OrchestrationRun, WorkflowEventRule, WorkflowDependency,
+    WorkflowFeedbackModel, WorkflowExplanationModel
+)
+
 
 
