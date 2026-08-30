@@ -19,3 +19,9 @@ from .agent_intelligence import (
     AgentPlan, AgentPlanItem, AgentRecommendation, AgentRecommendationFeedback,
     PlanStatus, RecommendationFeedbackStatus
 )
+from .live_state import (
+    LiveSession, LiveSessionType, LiveSessionStatus,
+    DevicePresence, RealtimeEventRecord, EntityVersion,
+    ConflictResolutionType, AdvancedConflictRecord, EntityRevision
+)
+

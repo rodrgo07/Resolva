@@ -1,11 +1,11 @@
-﻿import { useMobileStore } from "../stores/mobile-store"
+import { useMobileStore } from "../stores/mobile-store"
 
 export class RealtimeClient {
   private ws: WebSocket | null = null
   private baseUrl: string
   private deviceId: string
   private reconnectAttempts = 0
-  private maxReconnectAttempts = 5
+  private maxReconnectAttempts = 10
   private reconnectTimer: any = null
   private pingTimer: any = null
 
@@ -17,13 +17,14 @@ export class RealtimeClient {
   connect() {
     if (this.ws) return
 
-    const url = `${this.baseUrl}/api/remote/ws?device_id=${encodeURIComponent(this.deviceId)}`
+    const url = this.baseUrl + "/api/remote/ws?device_id=" + encodeURIComponent(this.deviceId)
     this.ws = new WebSocket(url)
 
     this.ws.onopen = () => {
       this.reconnectAttempts = 0
       useMobileStore.getState().setConnectivity("ONLINE")
       this.startHeartbeat()
+      this.fetchInitialState()
     }
 
     this.ws.onmessage = (event) => {
@@ -46,13 +47,46 @@ export class RealtimeClient {
     }
   }
 
+  private async fetchInitialState() {
+    const store = useMobileStore.getState()
+    try {
+      const res = await fetch(store.serverEndpoint + "/api/realtime/state")
+      if (res.ok) {
+        const state = await res.json()
+        if (state.active_session) {
+          store.setLiveSession(state.active_session)
+        }
+        if (state.latest_event_sequence) {
+          store.setLastEventSequence(state.latest_event_sequence)
+        }
+      }
+    } catch {}
+  }
+
   private startHeartbeat() {
-    this.pingTimer = setInterval(() => {
+    this.pingTimer = setInterval(async () => {
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
         this.ws.send("ping")
+        
+        // Envia heartbeat de presença
+        const store = useMobileStore.getState()
+        try {
+          await fetch(store.serverEndpoint + "/api/realtime/presence/heartbeat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              device_id: this.deviceId,
+              device_name: store.deviceInfo.deviceName,
+              platform: store.deviceInfo.platform,
+              app_version: store.deviceInfo.appVersion,
+              sync_status: store.offlineQueue.length > 0 ? "SYNCING" : "SYNCED"
+            })
+          })
+        } catch {}
       }
     }, 15000)
   }
+
 
   private stopHeartbeat() {
     if (this.pingTimer) clearInterval(this.pingTimer)
@@ -69,17 +103,27 @@ export class RealtimeClient {
   private handleEvent(event: { type: string; data: any }) {
     const store = useMobileStore.getState()
     
-    // Atualização em tempo real sem refresh
-    if (event.type === "TASK_CREATED" || event.type === "TASK_COMPLETED") {
-      // Atualiza contagens ou lista
+    if (event.type === "LIVE_STATE_UPDATED") {
+      const data = event.data
+      store.setLiveSession({
+        session_id: data.session_id,
+        device_id: data.origin_device_id || "DESKTOP-MAIN",
+        origin_device_id: data.origin_device_id || "DESKTOP-MAIN",
+        user_id: "user_default",
+        type: data.type,
+        status: data.status,
+        duration_seconds: data.duration_seconds,
+        remaining_seconds: data.remaining_seconds,
+        current_block_id: data.current_block_id,
+        version: data.version
+      })
+    } else if (event.type === "TASK_CREATED" || event.type === "TASK_COMPLETED") {
       if (store.dashboard) {
         store.setDashboard({
           ...store.dashboard,
           tasksCount: event.type === "TASK_CREATED" ? store.dashboard.tasksCount + 1 : Math.max(0, store.dashboard.tasksCount - 1)
         })
       }
-    } else if (event.type === "SYNC_COMPLETED") {
-      // Limpa filas locais
     }
   }
 

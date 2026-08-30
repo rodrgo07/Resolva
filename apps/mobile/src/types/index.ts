@@ -71,3 +71,34 @@ export interface MobileDashboardData {
   upcomingEvents: Array<{ id: number; title: string; start_time: string; end_time?: string }>
   desktopStatus: DesktopStatus
 }
+
+export interface LiveSessionData {
+  session_id: string
+  device_id: string
+  origin_device_id: string
+  user_id: string
+  type: string
+  status: string
+  started_at?: string
+  paused_at?: string
+  duration_seconds: number
+  remaining_seconds: number
+  current_block_id?: string
+  version: number
+  metadata_json?: Record<string, any>
+}
+
+export interface SyncConflictData {
+  conflict_id: string
+  entity_type: string
+  entity_id: string
+  base_version: number
+  local_version: number
+  remote_version: number
+  local_payload: Record<string, any>
+  remote_payload: Record<string, any>
+  merged_payload?: Record<string, any>
+  conflict_type: string
+  resolution: string
+  is_resolved: boolean
+}

@@ -1,7 +1,7 @@
-﻿import { create } from "zustand"
+import { create } from "zustand"
 import { 
   ConnectivityState, DeviceInfo, MobileDashboardData, SyncOperationItem,
-  DesktopStatus, RemotePendingAction
+  DesktopStatus, RemotePendingAction, LiveSessionData, SyncConflictData
 } from "../types"
 
 interface MobileState {
@@ -14,6 +14,9 @@ interface MobileState {
   pendingActions: RemotePendingAction[]
   offlineQueue: SyncOperationItem[]
   isSyncing: boolean
+  liveSession: LiveSessionData | null
+  conflicts: SyncConflictData[]
+  lastEventSequence: number
 
   // Actions
   setConnectivity: (status: ConnectivityState) => void
@@ -22,6 +25,9 @@ interface MobileState {
   setDashboard: (data: MobileDashboardData) => void
   setDesktopStatus: (status: DesktopStatus) => void
   setPendingActions: (actions: RemotePendingAction[]) => void
+  setLiveSession: (session: LiveSessionData | null) => void
+  setConflicts: (conflicts: SyncConflictData[]) => void
+  setLastEventSequence: (seq: number) => void
   enqueueOfflineOperation: (op: Omit<SyncOperationItem, "operation_id" | "device_id" | "version">) => void
   clearProcessedQueue: (operationIds: string[]) => void
   setDeviceInfo: (info: Partial<DeviceInfo>) => void
@@ -43,6 +49,9 @@ export const useMobileStore = create<MobileState>((set, get) => ({
   desktopStatus: null,
   pendingActions: [],
   offlineQueue: [],
+  liveSession: null,
+  conflicts: [],
+  lastEventSequence: 0,
 
   setConnectivity: (connectivity) => set({ connectivity }),
   setServerEndpoint: (serverEndpoint) => set({ serverEndpoint }),
@@ -50,13 +59,16 @@ export const useMobileStore = create<MobileState>((set, get) => ({
   setDashboard: (dashboard) => set({ dashboard }),
   setDesktopStatus: (desktopStatus) => set({ desktopStatus }),
   setPendingActions: (pendingActions) => set({ pendingActions }),
+  setLiveSession: (liveSession) => set({ liveSession }),
+  setConflicts: (conflicts) => set({ conflicts }),
+  setLastEventSequence: (lastEventSequence) => set({ lastEventSequence }),
   setDeviceInfo: (info) => set((state) => ({ deviceInfo: { ...state.deviceInfo, ...info } })),
 
   enqueueOfflineOperation: (op) => {
     const { deviceInfo, offlineQueue } = get()
     const newOp: SyncOperationItem = {
       ...op,
-      operation_id: `op_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      operation_id: "op_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
       device_id: deviceInfo.deviceId,
       version: 1,
       created_at: new Date().toISOString(),
@@ -64,6 +76,7 @@ export const useMobileStore = create<MobileState>((set, get) => ({
     }
     set({ offlineQueue: [...offlineQueue, newOp] })
   },
+
 
   clearProcessedQueue: (operationIds) => {
     set((state) => ({
