@@ -1,4 +1,4 @@
-﻿import uuid
+import uuid
 from datetime import datetime, timedelta, date
 from typing import Dict, Any, Optional, Tuple, List
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -87,6 +87,17 @@ class RemoteCommandService:
             raise PermissionError(f"Comando remoto '{req.command_type}' não homologado na Permission Layer.")
 
         cmd_spec = HOMOLOGATED_REMOTE_COMMANDS[cmd_type]
+
+        # 2.1 Verificação de Autonomia / SAFE_MODE Global
+        from app.ai.autonomy_policy import AutonomyPolicyEngine
+        is_allowed, req_confirm, reason = AutonomyPolicyEngine.evaluate_action_permission(
+            action_type=cmd_type,
+            risk_level=cmd_spec["risk"],
+            payload=req.parameters or {}
+        )
+        if not is_allowed:
+            raise PermissionError(f"Comando bloqueado por política de segurança: {reason}")
+
 
         # 3. Idempotência / Proteção contra Replay
         stmt_rec = select(RemoteCommandRecord).where(RemoteCommandRecord.request_id == req.request_id)
