@@ -3,8 +3,9 @@ from app.api import (
     health, tasks, finances, studies, calendar, emails,
     automations, ai, activity, notifications, search,
     settings, dashboard, backup_sync, devices, remote_control, ai_memories,
-    realtime_state
+    realtime_state, workflows
 )
+
 
 
 api_router = APIRouter()
@@ -27,5 +28,7 @@ api_router.include_router(devices.router, tags=["devices"])
 api_router.include_router(remote_control.router, tags=["remote_control"])
 api_router.include_router(ai_memories.router, tags=["ai_memories"])
 api_router.include_router(realtime_state.router, tags=["realtime_state"])
+api_router.include_router(workflows.router, tags=["workflows"])
+
 
 

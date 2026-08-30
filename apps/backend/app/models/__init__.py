@@ -24,4 +24,10 @@ from .live_state import (
     DevicePresence, RealtimeEventRecord, EntityVersion,
     ConflictResolutionType, AdvancedConflictRecord, EntityRevision
 )
+from .workflow import (
+    Workflow, WorkflowStep, WorkflowExecution, WorkflowStepExecution,
+    WorkflowConfirmation, WorkflowRecommendation, WorkflowStatus,
+    WorkflowSafetyLevel, WorkflowExecutionPolicy
+)
+
 

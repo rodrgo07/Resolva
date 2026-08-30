@@ -277,3 +277,197 @@ async def test_realtime_api_endpoints():
         assert res_ev.status_code == 200
         assert isinstance(res_ev.json(), list)
 
+# ========================================================
+# FASE 33: WORKFLOW ENGINE & AUTOMATION INTELLIGENCE TESTS
+# ========================================================
+
+@pytest.mark.asyncio
+async def test_workflow_validator_and_injection_rejection():
+    from app.automation.workflow_validator import WorkflowValidator
+
+    # 1. Rejeição de Shell / PowerShell Injection
+    bad_wf_1 = {
+        "name": "Malicious Workflow",
+        "max_runtime_seconds": 300,
+        "steps": [
+            {"name": "Bad Step", "action_type": "CREATE_TASK", "parameters": {"title": "powershell -c Invoke-Expression"}}
+        ]
+    }
+    is_valid1, errors1 = WorkflowValidator.validate_workflow_definition(bad_wf_1)
+    assert is_valid1 == False
+    assert any("powershell" in err.lower() or "proibido" in err.lower() for err in errors1)
+
+    # 2. Rejeição de SQL Injection
+    bad_wf_2 = {
+        "name": "SQL Injection Workflow",
+        "max_runtime_seconds": 300,
+        "steps": [
+            {"name": "Bad SQL", "action_type": "CREATE_TASK", "parameters": {"title": "SELECT * FROM users; DROP TABLE tasks;"}}
+        ]
+    }
+    is_valid2, errors2 = WorkflowValidator.validate_workflow_definition(bad_wf_2)
+    assert is_valid2 == False
+
+    # 3. Rejeição de Ação Não Homologada
+    bad_wf_3 = {
+        "name": "Unknown Action Workflow",
+        "max_runtime_seconds": 300,
+        "steps": [
+            {"name": "Unknown Step", "action_type": "EXECUTE_ARBITRARY_CODE", "parameters": {}}
+        ]
+    }
+    is_valid3, errors3 = WorkflowValidator.validate_workflow_definition(bad_wf_3)
+    assert is_valid3 == False
+    assert any("NÃO é homologada" in err for err in errors3)
+
+@pytest.mark.asyncio
+async def test_workflow_conditions_engine():
+    from app.automation.workflow_conditions import WorkflowConditionsEngine
+
+    context = {
+        "hour": 19,
+        "day": "MONDAY",
+        "desktop_status": {"desktop_online": True},
+        "live_session": {"status": "IDLE"}
+    }
+
+    # Condição simples EQ
+    cond1 = {"field": "hour", "operator": "EQ", "value": 19}
+    assert WorkflowConditionsEngine.evaluate_condition(cond1, context) == True
+
+    # Condição AND composta
+    cond_and = {
+        "AND": [
+            {"field": "hour", "operator": "GTE", "value": 18},
+            {"field": "day", "operator": "IN", "value": ["MONDAY", "TUESDAY"]},
+            {"field": "desktop_status.desktop_online", "operator": "EQ", "value": True}
+        ]
+    }
+    assert WorkflowConditionsEngine.evaluate_condition(cond_and, context) == True
+
+    # Condição OR
+    cond_or = {
+        "OR": [
+            {"field": "hour", "operator": "LT", "value": 12},
+            {"field": "live_session.status", "operator": "EQ", "value": "IDLE"}
+        ]
+    }
+    assert WorkflowConditionsEngine.evaluate_condition(cond_or, context) == True
+
+@pytest.mark.asyncio
+async def test_workflow_lifecycle_execution_and_dry_run():
+    from app.automation.workflow_engine import WorkflowEngine
+
+    async with async_session_maker() as db:
+        engine = WorkflowEngine(db)
+
+        # 1. Criação do Workflow
+        wf = await engine.create_workflow({
+            "name": "Rotina de Foco Matinal",
+            "description": "Cria tarefa e notifica",
+            "safety_level": "AUTO_LOW_RISK",
+            "execution_policy": "SINGLE_ACTIVE",
+            "max_runtime_seconds": 300,
+            "trigger_config": {"type": "TIME", "time": "08:00"},
+            "steps": [
+                {"name": "Criar Tarefa Matinal", "action_type": "CREATE_TASK", "parameters": {"title": "Revisar Metas do Dia"}},
+                {"name": "Notificar Início", "action_type": "SHOW_NOTIFICATION", "parameters": {"title": "Dia Iniciado", "message": "Bom dia!"}}
+            ]
+        })
+        assert wf.status == "ACTIVE"
+        assert len(wf.steps) == 2
+
+        # 2. Execução em Dry Run (Simulação segura sem efeitos persistentes)
+        dry_exec = await engine.execute_workflow(
+            workflow_id=wf.workflow_id,
+            trigger_source="MANUAL",
+            dry_run=True
+        )
+        assert dry_exec.is_dry_run == True
+        assert dry_exec.status == "COMPLETED"
+
+        # 3. Execução Real
+        real_exec = await engine.execute_workflow(
+            workflow_id=wf.workflow_id,
+            trigger_source="MANUAL",
+            dry_run=False
+        )
+        assert real_exec.status == "COMPLETED"
+        assert real_exec.is_dry_run == False
+        assert len(real_exec.step_executions) == 2
+
+        # 4. Pausar e Reativar
+        paused = await engine.pause_workflow(wf.workflow_id)
+        assert paused.status == "PAUSED"
+        assert paused.enabled == False
+
+        activated = await engine.activate_workflow(wf.workflow_id)
+        assert activated.status == "ACTIVE"
+        assert activated.enabled == True
+
+@pytest.mark.asyncio
+async def test_workflow_confirmation_flow_and_permission():
+    from app.automation.workflow_engine import WorkflowEngine
+
+    async with async_session_maker() as db:
+        engine = WorkflowEngine(db)
+
+        # Workflow com ação que exige confirmação (requires_confirmation=True)
+        wf = await engine.create_workflow({
+            "name": "Exclusão Segura com Confirmação",
+            "safety_level": "AUTO_WITH_CONFIRMATION",
+            "steps": [
+                {"name": "Excluir Tarefa Obsoleta", "action_type": "DELETE_TASK", "parameters": {"task_id": 999}, "requires_confirmation": True}
+            ]
+        })
+
+        # Execução que deve parar em WAITING_CONFIRMATION
+        exec_record = await engine.execute_workflow(
+            workflow_id=wf.workflow_id,
+            trigger_source="MANUAL"
+        )
+        assert exec_record.status == "WAITING_CONFIRMATION"
+        assert len(exec_record.confirmations) == 1
+        conf = exec_record.confirmations[0]
+        assert conf.status == "PENDING"
+
+        # Resolução da confirmação (Aprovação pelo usuário)
+        resolved_exec = await engine.resolve_confirmation(
+            confirmation_id=conf.confirmation_id,
+            approved=True,
+            device_id="DESKTOP-MAIN"
+        )
+        assert resolved_exec.status == "COMPLETED"
+
+@pytest.mark.asyncio
+async def test_workflow_api_endpoints():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # 1. Listar templates
+        res_tpl = await client.get("/api/workflows/catalog/templates")
+        assert res_tpl.status_code == 200
+        templates = res_tpl.json()
+        assert len(templates) >= 5
+
+        # 2. Criar Workflow via API
+        res_create = await client.post("/api/workflows", json={
+            "name": "Workflow Criado via API",
+            "description": "Teste de integração",
+            "safety_level": "AUTO_LOW_RISK",
+            "steps": [
+                {"name": "Notificação de Teste", "action_type": "SHOW_NOTIFICATION", "parameters": {"title": "Teste API", "message": "OK"}}
+            ]
+        })
+        assert res_create.status_code == 201
+        wf_data = res_create.json()
+        wf_id = wf_data["workflow_id"]
+
+        # 3. Testar em Dry Run via API
+        res_test = await client.post(f"/api/workflows/{wf_id}/test", json={
+            "device_id": "DESKTOP-MAIN"
+        })
+        assert res_test.status_code == 200
+        assert res_test.json()["is_dry_run"] == True
+        assert res_test.json()["status"] == "COMPLETED"
+
+
