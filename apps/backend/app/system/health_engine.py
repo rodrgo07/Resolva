@@ -6,8 +6,8 @@ from typing import Dict, Any, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, text
 from app.models.task import Task
-from app.models.device import Device
-from app.models.backup_sync import SyncQueue, BackupRecord
+from app.models.device import Device, DeviceStatus
+from app.models.backup_sync import SyncQueue, BackupRecord, SyncStatusEnum
 from app.models.system_hardening import SystemHealthRecord
 from app.services.event_bus import event_bus
 
@@ -67,7 +67,7 @@ class SystemHealthEngine:
 
         # 2. Sync Queue Depth
         try:
-            sync_stmt = select(func.count(SyncQueue.id)).where(SyncQueue.synced == False)
+            sync_stmt = select(func.count(SyncQueue.id)).where(SyncQueue.status.in_([SyncStatusEnum.PENDING, SyncStatusEnum.PROCESSING]))
             sync_res = await self.db.execute(sync_stmt)
             queue_depth = sync_res.scalar() or 0
 
@@ -85,7 +85,7 @@ class SystemHealthEngine:
 
         # 3. Dispositivos e Presença
         try:
-            dev_stmt = select(func.count(Device.id)).where(Device.is_active == True)
+            dev_stmt = select(func.count(Device.id)).where(Device.status == DeviceStatus.ACTIVE)
             dev_res = await self.db.execute(dev_stmt)
             dev_count = dev_res.scalar() or 0
 
@@ -114,7 +114,7 @@ class SystemHealthEngine:
                 "timestamp": now.isoformat(),
                 "latency_ms": 2.0,
                 "message": f"Último backup: {last_bk.created_at.strftime('%d/%m/%Y %H:%M') if last_bk else 'Nenhum'}",
-                "details": {"last_backup": last_bk.backup_id if last_bk else None},
+                "details": {"last_backup": last_bk.filename if last_bk else None},
                 "recoverable": True
             }
         except Exception:

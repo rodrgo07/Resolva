@@ -1,13 +1,15 @@
 import { 
   LayoutDashboard, CheckSquare, BookOpen, Wallet, Mail, 
-  CalendarDays, Zap, Bot, Activity, Settings, Bell, ChevronLeft, ChevronRight,
-  RotateCcw, LucideIcon
+  CalendarDays, Zap, Bot, Activity, Settings, Bell, ChevronLeft,
+  RotateCcw, LogOut, LucideIcon
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { useAppStore } from "@/stores/app-store"
+import { useAuthStore } from "@/stores/auth-store"
 import { useNotificationStore } from "@/stores/notification-store"
 import { useState } from "react"
+
 
 type Page =
   | "dashboard"
@@ -74,28 +76,41 @@ export function Sidebar() {
         isCollapsed ? "w-16" : "w-64"
       )}
     >
-      <div className="flex h-16 items-center px-4 justify-between border-b border-border/40">
-        {!isCollapsed && (
-          <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-accent to-accent-light flex items-center justify-center font-black text-text-primary shadow-md shadow-accent-glow">
-              R
+      <div className={cn("flex h-16 items-center border-b border-border/40 px-3", isCollapsed ? "justify-center" : "justify-between")}>
+        {!isCollapsed ? (
+          <>
+            <div className="flex items-center gap-2.5">
+              <img 
+                src="/resolvaLogo.jpg" 
+                alt="Resolva Logo" 
+                className="h-8 w-8 rounded-xl object-cover shadow-md shadow-accent-glow ring-1 ring-border/50"
+              />
+              <span className="font-extrabold text-lg tracking-wider text-text-primary">RESOLVA</span>
             </div>
-            <span className="font-extrabold text-lg tracking-wider text-text-primary">RESOLVA</span>
-          </div>
+            <button 
+              onClick={() => setIsCollapsed(true)}
+              className="text-text-secondary hover:text-text-primary p-1.5 rounded-lg hover:bg-surface-hover border border-border flex items-center justify-center cursor-pointer transition-colors"
+              title="Recolher menu lateral"
+            >
+              <ChevronLeft size={16} />
+            </button>
+          </>
+        ) : (
+          <button 
+            onClick={() => setIsCollapsed(false)}
+            className="h-9 w-9 rounded-xl overflow-hidden shadow-md shadow-accent-glow cursor-pointer hover:scale-105 transition-transform ring-1 ring-border/50 flex items-center justify-center bg-surface"
+            title="Clique para expandir"
+          >
+            <img 
+              src="/resolvaLogo.jpg" 
+              alt="Resolva Logo" 
+              className="h-full w-full object-cover"
+            />
+          </button>
         )}
-        {isCollapsed && (
-          <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-accent to-accent-light flex items-center justify-center font-black text-text-primary mx-auto shadow-md shadow-accent-glow">
-            R
-          </div>
-        )}
-        
-        <button 
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="text-text-secondary hover:text-text-primary p-1 rounded-md hover:bg-surface-hover absolute -right-3.5 top-5 bg-surface-elevated border border-border z-10 hidden sm:flex items-center justify-center shadow-md cursor-pointer"
-        >
-          {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-        </button>
       </div>
+
+
 
       <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1.5">
         {navItems.map((item) => (
@@ -147,6 +162,15 @@ export function Sidebar() {
         >
           <Settings className={cn("h-5 w-5 shrink-0", isCollapsed ? "mx-auto" : "mr-3", currentPage === "settings" ? "text-accent-light" : "text-text-muted")} />
           {!isCollapsed && <span className="text-sm font-medium flex-1 text-left">Configurações</span>}
+        </button>
+
+        <button
+          onClick={() => useAuthStore.getState().logout()}
+          className="flex items-center w-full px-3 py-2.5 rounded-xl transition-all outline-none text-text-secondary hover:bg-red-500/10 hover:text-red-400 cursor-pointer"
+          title={isCollapsed ? "Sair da Conta" : undefined}
+        >
+          <LogOut className={cn("h-5 w-5 shrink-0", isCollapsed ? "mx-auto" : "mr-3 text-text-muted group-hover:text-red-400")} />
+          {!isCollapsed && <span className="text-sm font-medium flex-1 text-left">Sair</span>}
         </button>
 
 

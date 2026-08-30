@@ -1,5 +1,6 @@
 import { Search, Bell, Wifi, WifiOff, Loader2 } from "lucide-react"
 import { useAppStore } from "@/stores/app-store"
+import { useAuthStore } from "@/stores/auth-store"
 import { useNotificationStore } from "@/stores/notification-store"
 import { Button } from "@/components/ui/button"
 
@@ -19,6 +20,7 @@ const pageTitles: Record<string, string> = {
 
 export function Topbar() {
   const { currentPage, setCurrentPage, setSearchOpen, backendStatus } = useAppStore()
+  const { user } = useAuthStore()
   const { unreadCount } = useNotificationStore()
   const title = pageTitles[currentPage] || "Resolva"
 
@@ -75,15 +77,23 @@ export function Topbar() {
           )}
         </button>
 
-        <div className="h-8 w-8 rounded-xl overflow-hidden text-text-primary font-bold text-sm ml-1 ring-2 ring-border shadow-sm shadow-accent-glow cursor-pointer transition-transform hover:scale-105">
-          <img 
-            src="/resolvaLogo.jpg" 
-            alt="Resolva" 
-            className="h-full w-full object-cover" 
-          />
+        <div 
+          onClick={() => setCurrentPage("settings")}
+          className="flex items-center gap-2 px-2 py-1 rounded-xl hover:bg-surface-hover cursor-pointer transition-colors"
+          title={user?.email ? `Usuário: ${user.name} (${user.email})` : "Configurações de Usuário"}
+        >
+          <div className="h-8 w-8 rounded-xl overflow-hidden text-text-primary font-bold text-sm ring-2 ring-border shadow-sm shadow-accent-glow flex items-center justify-center bg-accent/20">
+            {user?.name ? user.name.charAt(0).toUpperCase() : "R"}
+          </div>
+          {user?.name && (
+            <span className="text-xs font-semibold text-text-secondary hidden xl:inline">
+              {user.name.split(" ")[0]}
+            </span>
+          )}
         </div>
       </div>
     </header>
   )
 }
+
 

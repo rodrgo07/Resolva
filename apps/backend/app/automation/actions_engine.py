@@ -83,14 +83,15 @@ class ActionEngine:
 
             # E) Evento na Agenda
             elif act_upper == "CREATE_CALENDAR_EVENT":
+                from app.models.calendar import CalendarEvent, EventType, EventSource
                 event = CalendarEvent(
                     title=config.get("title", "Evento Automático"),
                     description=config.get("description"),
                     start_time=datetime.now(),
                     end_time=datetime.now(),
                     all_day=False,
-                    type="routine",
-                    source="automation"
+                    type=EventType.event,
+                    source=EventSource.local
                 )
                 self.db.add(event)
                 await self.db.commit()
@@ -117,9 +118,10 @@ class ActionEngine:
             # H) Criação de Backup
             elif act_upper == "CREATE_BACKUP":
                 try:
-                    from app.backup.manager import BackupManager
+                    from app.services.backup_manager import BackupManager
+                    from app.models.backup_sync import BackupType
                     mgr = BackupManager(self.db)
-                    backup_rec = await mgr.create_backup(backup_type="automation", encrypt=True)
+                    backup_rec = await mgr.create_backup(backup_type=BackupType.AUTOMATIC)
                     return True, f"Backup automático criado com sucesso: {backup_rec.filename}"
                 except Exception as b_err:
                     logger.warning(f"Não foi possível criar backup via automação: {b_err}")

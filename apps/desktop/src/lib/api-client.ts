@@ -13,9 +13,18 @@ export class ApiError extends Error {
 
 class ApiClient {
   private baseUrl: string;
+  private token: string | null = null;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
+  }
+
+  public setToken(token: string | null) {
+    this.token = token;
+  }
+
+  public getToken(): string | null {
+    return this.token;
   }
 
   private async request<T>(
@@ -26,14 +35,21 @@ class ApiClient {
 
     const isGet = !options.method || options.method === "GET";
     const { headers: optionHeaders, ...restOptions } = options;
+    
+    const baseHeaders: Record<string, string> = {};
+    if (!isGet) {
+      baseHeaders["Content-Type"] = "application/json";
+    }
+    if (this.token) {
+      baseHeaders["Authorization"] = `Bearer ${this.token}`;
+    }
+
     const config: RequestInit = {
       ...restOptions,
-      headers: isGet
-        ? { ...optionHeaders }
-        : {
-            "Content-Type": "application/json",
-            ...optionHeaders,
-          },
+      headers: {
+        ...baseHeaders,
+        ...(optionHeaders as Record<string, string>),
+      },
     };
 
     try {
@@ -46,6 +62,12 @@ class ApiClient {
         } catch {
           // response body is not JSON
         }
+        
+        if (response.status === 401 && !endpoint.includes("/api/auth/login") && !endpoint.includes("/api/auth/unlock") && !endpoint.includes("/api/auth/register")) {
+          // Disparar evento global de sessao expirada se logado
+          window.dispatchEvent(new CustomEvent("resolva-session-expired"));
+        }
+
         throw new ApiError(response.status, response.statusText, data);
       }
 

@@ -206,9 +206,17 @@ fn spawn_backend_process() -> Option<Child> {
 
 
     // Fallback: tentar usar 'python' do PATH se não encontrado
+    let fallback_backend_dir = std::env::current_exe()
+        .ok()
+        .and_then(|exe| exe.parent().map(|p| p.to_path_buf()))
+        .or_else(|| std::env::current_dir().ok())
+        .unwrap_or_else(|| PathBuf::from("."));
+
     let mut fallback_cmd = Command::new("python");
     fallback_cmd.args(["-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8700"])
-                .env("PYTHONUNBUFFERED", "1");
+                .env("PYTHONUNBUFFERED", "1")
+                .current_dir(&fallback_backend_dir)
+                .env("PYTHONPATH", fallback_backend_dir.to_string_lossy().to_string());
 
     #[cfg(windows)]
     fallback_cmd.creation_flags(CREATE_NO_WINDOW);
@@ -289,8 +297,10 @@ pub fn run() {
                 let app = window.app_handle();
                 let state = app.state::<WindowConfigState>();
                 let behavior = {
-                    let cfg = state.config.lock().unwrap();
-                    cfg.close_behavior.clone()
+                    match state.config.lock() {
+                        Ok(cfg) => cfg.close_behavior.clone(),
+                        Err(_) => "minimize_to_tray".to_string(),
+                    }
                 };
 
                 if behavior == "minimize_to_tray" {
