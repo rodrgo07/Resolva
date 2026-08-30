@@ -1,0 +1,62 @@
+﻿import { create } from "zustand"
+import { ConnectivityState, DeviceInfo, MobileDashboardData, SyncOperationItem } from "../types"
+
+interface MobileState {
+  connectivity: ConnectivityState
+  deviceInfo: DeviceInfo
+  serverEndpoint: string
+  sessionToken: string | null
+  dashboard: MobileDashboardData | null
+  offlineQueue: SyncOperationItem[]
+  isSyncing: boolean
+
+  // Actions
+  setConnectivity: (status: ConnectivityState) => void
+  setServerEndpoint: (url: string) => void
+  setSessionToken: (token: string | null) => void
+  setDashboard: (data: MobileDashboardData) => void
+  enqueueOfflineOperation: (op: Omit<SyncOperationItem, "operation_id" | "device_id" | "version">) => void
+  clearProcessedQueue: (operationIds: string[]) => void
+  setDeviceInfo: (info: Partial<DeviceInfo>) => void
+}
+
+export const useMobileStore = create<MobileState>((set, get) => ({
+  connectivity: "OFFLINE",
+  serverEndpoint: "http://192.168.1.100:8700",
+  sessionToken: null,
+  isSyncing: false,
+  deviceInfo: {
+    deviceId: "RESOLVA-MOBILE-INIT",
+    deviceName: "Meu Android",
+    platform: "ANDROID",
+    appVersion: "0.1.0",
+    isPaired: false,
+  },
+  dashboard: null,
+  offlineQueue: [],
+
+  setConnectivity: (connectivity) => set({ connectivity }),
+  setServerEndpoint: (serverEndpoint) => set({ serverEndpoint }),
+  setSessionToken: (sessionToken) => set({ sessionToken }),
+  setDashboard: (dashboard) => set({ dashboard }),
+  setDeviceInfo: (info) => set((state) => ({ deviceInfo: { ...state.deviceInfo, ...info } })),
+
+  enqueueOfflineOperation: (op) => {
+    const { deviceInfo, offlineQueue } = get()
+    const newOp: SyncOperationItem = {
+      ...op,
+      operation_id: `op_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      device_id: deviceInfo.deviceId,
+      version: 1,
+      created_at: new Date().toISOString(),
+      status: "PENDING"
+    }
+    set({ offlineQueue: [...offlineQueue, newOp] })
+  },
+
+  clearProcessedQueue: (operationIds) => {
+    set((state) => ({
+      offlineQueue: state.offlineQueue.filter(op => !operationIds.includes(op.operation_id))
+    }))
+  }
+}))

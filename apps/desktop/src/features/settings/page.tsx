@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { 
   Moon, Database, Save, Laptop, Sparkles, Check, Mail, ExternalLink, RefreshCw, Unlink,
   ShieldCheck, ArrowDownCircle, Trash2, RotateCcw, Wifi, WifiOff, Cloud,
-  Keyboard, Bell, Power
+  Keyboard, Bell, Power, Smartphone
 } from "lucide-react";
+import { DeviceSettingsTab } from "./DeviceSettingsTab";
 import { api } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -93,7 +94,7 @@ export function SettingsPage() {
   const [notifFinances, setNotifFinances] = useState(true);
   const [notifAutomations, setNotifAutomations] = useState(true);
 
-  const [activeTab, setActiveTab] = useState<"general" | "windows" | "integrations" | "ai" | "sync" | "system">("general");
+  const [activeTab, setActiveTab] = useState<"general" | "devices" | "windows" | "integrations" | "ai" | "sync" | "system">("general");
 
   const { toast } = useToast();
 
@@ -324,10 +325,11 @@ export function SettingsPage() {
       <div className="flex items-center gap-2 border-b border-surface-800/60 pb-3 overflow-x-auto">
         {[
           { key: "general", label: "Geral & Perfil", icon: Laptop },
+          { key: "devices", label: "Dispositivos (Mobile)", icon: Smartphone },
           { key: "windows", label: "Windows & Atalhos", icon: Keyboard },
-          { key: "integrations", label: "Integraes & E-mail", icon: Mail },
-          { key: "sync", label: "Backup & Sincronizao", icon: Cloud },
-          { key: "ai", label: "Inteligncia Artificial", icon: Sparkles },
+          { key: "integrations", label: "Integrações & E-mail", icon: Mail },
+          { key: "sync", label: "Backup & Sincronização", icon: Cloud },
+          { key: "ai", label: "Inteligência Artificial", icon: Sparkles },
           { key: "system", label: "Banco de Dados & Sistema", icon: Database },
         ].map((tab) => {
           const Icon = tab.icon;
@@ -349,7 +351,9 @@ export function SettingsPage() {
       </div>
 
       {isLoading ? (
-        <LoadingState message="Carregando prefer�ncias..." />
+        <LoadingState message="Carregando preferências..." />
+      ) : activeTab === "devices" ? (
+        <DeviceSettingsTab />
       ) : (
         <form onSubmit={handleSaveAll} className="space-y-6">
           {activeTab === "general" && (

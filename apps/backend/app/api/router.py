@@ -1,8 +1,8 @@
-﻿from fastapi import APIRouter
+from fastapi import APIRouter
 from app.api import (
     health, tasks, finances, studies, calendar, emails,
     automations, ai, activity, notifications, search,
-    settings, dashboard, backup_sync
+    settings, dashboard, backup_sync, devices
 )
 
 api_router = APIRouter()
@@ -21,3 +21,5 @@ api_router.include_router(notifications.router, prefix="/notifications", tags=["
 api_router.include_router(search.router, prefix="/search", tags=["search"])
 api_router.include_router(settings.router, prefix="/settings", tags=["settings"])
 api_router.include_router(backup_sync.router, tags=["backup_sync"])
+api_router.include_router(devices.router, tags=["devices"])
+
